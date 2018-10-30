@@ -24,32 +24,23 @@ data class ZStr(val dummy:Int = 0) {
             return str.toByteArray()
         }
 
-        fun Format(format: String, vararg args: Any?) : String =
-                String.format(format, args)
+        fun Format(format: String, vararg args: Any?) : String {
+            val f = ZStr.Replace(format, "%S", "%s")
+            return f.format(*args)
+        }
 
         fun SaveToFile(str: String, file: ZFileUrl) : Error? {
-            ZNOTIMPLEMENTED()
-            return null
+            val data = ZData(utfString = str)
+            return data.SaveToFile(file)
         }
 
         fun LoadFromFile(file: ZFileUrl) : Pair<String, Error?> {
-            if (!file.Exists()) {
-                return Pair("", ZNewError("File doesn't exist"))
+            val data = ZData()
+            val err = data.LoadFromFile(file)
+            if (err != null) {
+                return Pair("", err)
             }
-            val f = File(file.FilePath)
-            val length = f.length().toInt()
-            var contents = ""
-            if (length > 0) {
-                val bytes = ByteArray(length)
-                val bin = FileInputStream(f)
-                try {
-                    bin.read(bytes)
-                } finally {
-                    bin.close()
-                }
-                contents = String(bytes)
-            }
-            return Pair(contents, null)
+            return Pair(data.GetString(), null)
         }
 
         fun FindFirstOfChars(str: String, charset: String) : Int {
@@ -378,21 +369,21 @@ data class ZStr(val dummy:Int = 0) {
         }
 */
         fun NiceDouble(d: Double, maxSig: Int = 8) : String {
-            val format = "%.${maxSig}lf"
+            val format = "%.${maxSig}f"
             var str = Format(format, d)
             if (str.contains("")) {
                 while (true) {
-                    when (Tail(str)) {
-                        "0" -> str.dropLast(1)
-                        "" -> {
-                            Tail(str)
-                            return str
-                        }
-                        else -> return str
+                    val t = Tail(str)
+                    if (t == "0") {
+                        str = str.removedLast()
+                    } else if (t == ".") {
+                        return str.removedLast()
+                    } else {
+                        return str
                     }
                 }
             }
-            return str
+            return str;
         }
 
         fun SplitLines(str: String, skipEmpty: Boolean = true) : List<String> {

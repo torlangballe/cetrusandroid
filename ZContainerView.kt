@@ -69,6 +69,9 @@ open class ZContainerView: ZCustomView {
         if (useableArea) {
             r = ZScreen.MainUsableRect
         }
+        if (ZScreen.orientation == ZScreenLayout.landscapeRight || ZScreen.orientation == ZScreenLayout.landscapeLeft) {
+//            r.size.Swap()
+        }
         minSize = r.size
         Rect = r
     }
@@ -95,7 +98,6 @@ open class ZContainerView: ZCustomView {
                 rv = rnew
             }
         }
-        val scale = ZScreen.Scale
         zLayoutViewAndScale(c.view!!, rv)
     }
 
@@ -261,5 +263,8 @@ open class ZContainerView: ZCustomView {
         if (i != null) {
             cells.removeAt(i)
         }
+    }
+
+    open fun HandleRotation() {
     }
 }

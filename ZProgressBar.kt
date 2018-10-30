@@ -54,7 +54,7 @@ class ZProgressBar: ZCustomView {
 
     override fun DrawInRect(rect: ZRect, canvas: ZCanvas) {
         var r = rect
-        r.Max.x = rect.size.w * value.toDouble()
+        r.size.w = rect.size.w * value.toDouble()
         val path = ZPath(rect = r, corner = ZSize(height / 2, height / 2))
         canvas.SetColor(color)
         canvas.FillPath(path)

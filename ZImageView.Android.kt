@@ -71,122 +71,28 @@ class ZImageView: ZCustomView, ZImageLoader {
 //        canvas.FillPath(ZPath(rect = rect))
 
         if (image != null) {
-            val r = LocalRect.Align(image!!.Size, ZAlignment.Left)
-            canvas.DrawImage(image!!, destRect = r)
+            var drawImage = image!!
+            if (isHighlighted) {
+                drawImage = drawImage.TintedWithColor(ZColor(white = 0.5))
+            }
+            val r = LocalRect.Align(drawImage.Size, ZAlignment.Center or ZAlignment.Shrink)
+            canvas.DrawImage(drawImage, destRect = r)
         }
     }
-
-//    override fun draw(canvas: Canvas?) {
-//        val paint = Paint()
-//        paint.color = Color.GREEN
-//        paint.style = Paint.Style.FILL
-//        val path = Path()
-//        val r = ZRectToAndroidRectF(LocalRect)
-//        path.addRect(r, Path.Direction.CW)
-//        canvas!!.drawPath(path, paint)
-//        super.draw(canvas)
-//    }
 
     override fun View() : UIView {
         return this
     }
 
-    /*
-    //override fun layoutSubviews() {
-        //        if _isDebugAssertConfiguration() {
-        //            if accessibilityLabel == nil && isAccessibilityElement { // isAccessibilityElement is BOOL, not Boolean
-        //                //!                print("ZImageView: No accessiblity label")
-        //            }
-        //        }
-        if (handlePressedInPosFunc != null) {
-//            isUserInteractionEnabled = true
-//            if (highlightedImage == null && image != null) {
-//                highlightedImage = image!!.TintedWithColor(hightlightTint)
-//            }
-        }
-    }
-*/
-    /*
-override fun touchesBegan(touches: Set<UITouch>, event: UIEvent?) {
-        if (tapTarget != null) {
-            val pos = ZPos(touches.firstOrNull()!!.location(in = this))
-            tapTarget?.HandleTouched(this, state = .began, pos = pos, inside = true)
-            if (touchDownRepeatSecs != 0) {
-                touchDownRepeats = 0
-                touchDownRepeatTimer.Set(touchDownRepeatSecs, owner = this) {   ->
-                    if (this.touchDownRepeats > 2) {
-                        this.tapTarget!!.HandlePressed(this!!, pos = pos)
-                    }
-                    this.touchDownRepeats += 1
-                    true
-                }
-            }
-        }
-        isHighlighted = true
-        Expose()
-    }
-}
-
-override fun touchesEnded(touches: Set<UITouch>, event: UIEvent?) {
-    if (isUserInteractionEnabled) {
-        var handled = false
-        isHighlighted = false
-        PerformAfterDelay(0.05) {   ->
-            this.Expose()
-        }
-        if (tapTarget != null || handlePressedInPosFunc != null) {
-            val pos = ZPos(touches.firstOrNull()!!.location(in = this))
-            val inside = LocalRect.Contains(pos)
-            if (tapTarget != null) {
-                handled = tapTarget!!.HandleTouched(this, state = .ended, pos = pos, inside = inside)
-            }
-            if (inside && !handled) {
-                if (handlePressedInPosFunc != null) {
-                    handlePressedInPosFunc!!.invoke(pos)
-                } else {
-                    tapTarget?.HandlePressed(this, pos = ZPos(touches.firstOrNull()!!.location(in = this)))
-                }
-            }
-            touchDownRepeatTimer.Stop()
-        }
-        if (animationImages != null) {
-            startAnimating()
-        }
-    }
-}
-
-override fun touchesCancelled(touches: Set<UITouch>, event: UIEvent?) {
-    if (isUserInteractionEnabled) {
-        if (tapTarget != null) {
-            tapTarget?.HandleTouched(this, state = .canceled, pos = ZPos(), inside = false)
-        }
-        isHighlighted = false
-        Expose()
-        touchDownRepeatTimer.Stop()
-        if (animationImages != null) {
-            startAnimating()
-        }
-    }
-}
-*/
-
-    /*
-override fun sizeThatFits(size: CGSize) : CGSize {
-    if (!maxSize.IsNull()) {
-        return maxSize.GetCGSize()
-    }
-    val s = ZSize(super.sizeThatFits(size))
-    return (s + margin * 2.0).GetCGSize()
-}
-*/
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        var s = ZSize(10, 10)
+    override fun CalculateSize(total: ZSize): ZSize {
+        var s = minSize
         if (image != null) {
             s = image!!.Size
         }
-        s *= ZScreen.Scale
-        setMeasuredDimension(s.w.toInt(), s.h.toInt())
+        if (!maxSize.IsNull()) {
+            s = ZRect(size = maxSize).Align(s, align = ZAlignment.Center or ZAlignment.Shrink).size
+        }
+        return s
     }
 
     override fun SetImage(image: ZImage?, downloadUrl: String) {

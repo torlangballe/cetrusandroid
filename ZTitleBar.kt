@@ -68,29 +68,28 @@ class ZTitleBar: ZStackView {
                 true
             }
         }
-        minSize.h = 44 + ZScreen.StatusBarHeight
+        minSize.h = 40.0 //+ ZScreen.StatusBarHeight
     }
 
     fun ShowActivity(show: Boolean = true) {
-        if (show && FindCellWithName("activity") == null) {
-            val activity = ZActivityIndicator(big = false)
-            Add(activity, align = ZAlignment.VertCenter or ZAlignment.Right)
-            activity.Start()
+        if (show) {
+            if (FindCellWithName("activity") == null) {
+                val activity = ZActivityIndicator(big = false)
+                Add(activity, align = ZAlignment.VertCenter or ZAlignment.Right)
+                ArrangeChildren()
+                activity.Start()
+            }
         } else {
             RemoveNamedChild("activity")
+            ArrangeChildren()
         }
-        ArrangeChildren()
     }
 //
 //    override fun DrawInRect(rect: ZRect, canvas: ZCanvas) {
-//        canvas.SetColor(ZColor.Red())
-//        var path = ZPath(rect = rect)
-//        canvas.FillPath(path)
-//
 //        canvas.SetColor(ZColor.Green())
 //        val r = rect
 //        r.size.h = 3.0
-//        path = ZPath(rect = r)
+//        val path = ZPath(rect = r)
 //        canvas.FillPath(path)
 //    }
 }

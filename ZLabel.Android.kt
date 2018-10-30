@@ -78,15 +78,6 @@ open class ZLabel: TextView, ZView {
 //            accessibilityTraits |= UIAccessibilityTraitButton
         }
 
-//    override fun drawText(rect: CGRect) {
-//        val insets = UIEdgeInsets.init(top = CGFloat(margin.Min.y), left = CGFloat(margin.Min.x), bottom = CGFloat(-margin.Max.y), right = CGFloat(-margin.Max.x))
-//        super.drawText(in = UIEdgeInsetsInsetRect(rect, insets))
-//        if (handlePressedInPosFunc != null) {
-//            // we hack this in here...
-//            isUserInteractionEnabled = true
-//        }
-//    }
-
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (touchInfo.gestureDetector != null && touchInfo.gestureDetector!!.onTouchEvent(event)) {
             return true
@@ -99,29 +90,32 @@ open class ZLabel: TextView, ZView {
     }
 
     override fun CalculateSize(total: ZSize): ZSize {
-        if (text == "" && lineCount == 0) {
-            return ZSize(0.0, 0.0)
+        var sr = total
+        if (maxWidth != 0.0 && maxWidth < sr.w) {
+            sr.w = maxWidth
         }
-        var s = total
-        if (maxWidth != 0.0 && maxWidth < s.w) {
-            s.w = maxWidth
+        if (maxHeight != null && maxHeight!! > sr.h) {
+            sr.h = maxHeight!!
         }
-        s.h = 29999.0
-        if (maxHeight != null && maxHeight!! > s.h) {
-            s.h = maxHeight!!
+        var s = ZSize()
+        if (text != "" || lineCount != 0) {
+            if (maxHeight == null) {
+                sr.h = 29999.0
+            }
+            var tdraw = ZTextDraw()
+            tdraw.rect = ZRect(size = sr)
+            tdraw.font = font
+            tdraw.alignment = xAlignment
+            tdraw.text = text.toString()
+            tdraw.maxLines = maxLines
+            s = tdraw.GetBounds().size
+            s.w += 1
+            s.h += 3 // g, p, q etc clipped otherwise
         }
+        s.w = maxOf(s.w, minWidth)
 
-        var tdraw = ZTextDraw()
-        tdraw.rect = ZRect(size = s)
-        tdraw.font = font
-        tdraw.alignment = xAlignment
-        tdraw.text = text.toString()
-        var bsize = tdraw.GetBounds().size
-        bsize.w += 1
-
-        return bsize
+        return s
     }
-
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val wmode = getMode(widthMeasureSpec)
@@ -213,12 +207,14 @@ open class ZLabel: TextView, ZView {
     }
 
     fun SetText(newText: String, animationDuration: Float = 0f) {
+        debugText = newText
         if (this.text != newText) {
             if (animationDuration != 0f) {
                 ZNOTIMPLEMENTED()
             } else {
                 this.text = newText
             }
+            requestLayout()
         }
     }
 

@@ -7,11 +7,16 @@
 
 package com.github.torlangballe.cetrusandroid
 
+import java.lang.Exception
 import java.util.Comparator
 
 typealias AnyHashable = String
 
 typealias ZAnyObject = Any
+
+fun ZIsIOS() : Boolean {
+    return false
+}
 
 fun <T>MutableList<T>.append(a:T) {
     add(a)
@@ -37,7 +42,11 @@ fun String.uppercased() : String {
     return toUpperCase()
 }
 
-// special helper companion class that is inserted into enums with values, for fromRaw conversion:
+fun String.removedLast() : String {
+    return removeRange(length - 1, length)
+}
+// s
+// pecial helper companion class that is inserted into enums with values, for fromRaw conversion:
 open class ZEnumCompanion<T, V>(private val valueMap: Map<T, V>) {
     fun rawValue(type: T) = valueMap[type]
 }
@@ -58,9 +67,13 @@ fun <T>MutableList<T>.popFirst() : T? {
     if (count() == 0) {
         return null
     }
-    val e = first()
-    removeFirst()
-    return e
+    try {
+        val e = first()
+        removeFirst()
+        return e
+    } catch(e:Exception) {
+        return null
+    }
 }
 
 fun <T>MutableList<T>.popLast() : T? {
@@ -124,8 +137,8 @@ fun <T : Comparable<T>> List <T>.Max() : T {
 
 fun <K, T : Comparable<T>> List <K>.Max(field:(t:K) -> T) : K {
     var mi = -1
-    for (i in 0 .. this.count()) {
-        if (field(get(mi)).compareTo(field(get(i))) < 0) {
+    for (i in 0 .. this.lastIndex) {
+        if (mi == -1 || field(get(mi)).compareTo(field(get(i))) < 0) {
             mi = i
         }
     }
@@ -134,8 +147,8 @@ fun <K, T : Comparable<T>> List <K>.Max(field:(t:K) -> T) : K {
 
 fun <K, T : Comparable<T>> List <K>.Min(field:(t:K) -> T) : K {
     var mi = -1
-    for (i in 0 .. this.count()) {
-        if (field(get(mi)).compareTo(field(get(i))) > 0) {
+    for (i in 0 .. this.lastIndex) {
+        if (mi == -1 || field(get(mi)).compareTo(field(get(i))) > 0) {
             mi = i
         }
     }

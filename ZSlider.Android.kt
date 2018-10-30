@@ -6,7 +6,12 @@
 //
 package com.github.torlangballe.cetrusandroid
 
+import android.graphics.PorterDuff
 import android.widget.SeekBar
+import android.widget.Toast
+import tv.bridgetech.pocketprobe.MainActivity
+
+
 
 class ZSlider: SeekBar, ZView, ZControl {
     override var objectName: String = "ZSlider"
@@ -21,24 +26,32 @@ class ZSlider: SeekBar, ZView, ZControl {
 
     var value:Float
         get() {
-            return 0f
+            return progress.toFloat() / 1000f
         }
         set(v) {
-
+            progress = (value * 1000f).toInt()
         }
 
     var handleValueChanged: (() -> Unit)? = null
 
-    constructor(vertical: Boolean = false, minLength: Int = 100) : super(zMainActivityContext!!) {
+    constructor(vertical: Boolean = false, minLength: Int = 100, dark:Boolean = false) : super(zMainActivityContext!!) {
         this.vertical = vertical
         this.minLength = minLength
-//        if (!vertical) {
-//            contentMode = ZViewContentMode.bottom
-//        }
-//        if (vertical) {
-//            transform = CGAffineTransform(rotationAngle = CGFloat(-ZMath.PI))
-//        }
-//        addTarget(this, action = #selector(ZSlider.valueChanged(_:)), for = UIControlEvents.valueChanged)
+        min = 0
+        max = 1000
+
+        if (!dark) {
+            getProgressDrawable().setColorFilter(ZColor.White().color.toArgb(), PorterDuff.Mode.SRC_IN);
+//            getThumb().setColorFilter(Utils.getAccentColor(this), PorterDuff.Mode.SRC_IN);
+        }
+        this.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                value = progress.toFloat() / 1000f
+                handleValueChanged?.invoke()
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar) { }
+            override fun onStopTrackingTouch(seekBar: SeekBar) { }
+        })
     }
 
 //    @objc fun valueChanged(sender: UISlider) {
@@ -51,9 +64,7 @@ class ZSlider: SeekBar, ZView, ZControl {
 
     fun SetValue(value: Float, animationDuration: Double = 0.0) {
         if (animationDuration != 0.0) {
-//            UIView.animate(withDuration = TimeInterval(animationDuration), animations = {   ->
-//                this.setValue(value, animated = true)
-//            })
+            setProgress((value * 100f).toInt(), true)
         } else {
             this.value = value
         }
@@ -107,6 +118,15 @@ class ZSlider: SeekBar, ZView, ZControl {
             parent.touchInfo.handlePressedInPosFunc = oldHandle
         }
     ZAnimation.Do(duration = 0.5, animations = { w.SetAlpha(1.0) })
+    }
+
+    override fun CalculateSize(total: ZSize): ZSize {
+        var s = ZSize(43, minLength)
+        if (!vertical) {
+            var h = 43
+            s = ZSize(minLength, h)
+        }
+        return s
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

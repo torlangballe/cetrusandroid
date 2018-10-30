@@ -81,7 +81,7 @@ open class ZUrl {
         get() {
             // TODO: Fix quick and dirty
             val h = ZStr.HeadUntil(AbsString, "?")
-            return ZStr.TailUntil(h, "")
+            return ZStr.TailUntil(h, ".")
         }
         set(newValue) {
             ZNOTIMPLEMENTED()

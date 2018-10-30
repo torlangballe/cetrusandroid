@@ -8,20 +8,16 @@ package com.github.torlangballe.cetrusandroid
 
 import android.os.SystemClock.sleep
 import java.io.Closeable
-import java.util.Timer
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import java.util.*
 
 import java.util.concurrent.CountDownLatch
 
 open class ZTimerBase : Closeable {
     var androidTimer: Timer? = null
 
-//    fun finalize() {
-//        Stop()
-//    }
-//
     override fun close() {
         Stop()
     }
@@ -44,14 +40,16 @@ class ZRepeater: ZTimerBase() {
                 return
             }
         }
-        closure = done
-        ZNOTIMPLEMENTED()
-    }
-
-    fun repeatTimerFired(timer: Timer) {
-        if (!closure!!.invoke()) {
-            super.Stop()
-        }
+        androidTimer = Timer()
+        androidTimer!!.schedule(object : TimerTask() {
+            override fun run() {
+                ZMainQue.sync() {
+                    if (!done()) {
+                        Stop()
+                    }
+                }
+            }
+        }, 0, (secs * 1000).toLong())
     }
 }
 
@@ -64,12 +62,16 @@ class ZTimer: ZTimerBase() {
         }
     }
 
-    var closure: (() -> Unit)? = null
-
     fun Set(secs: Double, done: () -> Unit) {
         super.Stop()
-        closure = done
-        ZNOTIMPLEMENTED()
+        androidTimer = Timer()
+        androidTimer!!.schedule(object : TimerTask() {
+            override fun run() {
+                ZMainQue.sync() {
+                    done()
+                }
+            }
+        }, (secs * 1000).toLong())
         return
     }
 }
@@ -158,9 +160,13 @@ class ZDispatchQueue(threadName: String) : Thread() {
 
     fun async(delay:Double = 0.0, f:()->Unit) {
         if (name == "@main") {
-            zMainActivity!!.runOnUiThread(Runnable {
-                f()
-            })
+            if (delay != 0.0) {
+                postRunnable((delay * 1000).toLong(), Runnable {
+                    zMainActivity!!.runOnUiThread(Runnable { f() })
+                })
+            } else {
+                zMainActivity!!.runOnUiThread(Runnable { f() })
+            }
         } else {
             postRunnable((delay * 1000).toLong(), Runnable { f() })
         }

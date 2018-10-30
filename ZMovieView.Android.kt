@@ -7,6 +7,7 @@
 
 package com.github.torlangballe.cetrusandroid
 
+import android.media.MediaPlayer
 import android.net.Uri
 import android.widget.VideoView
 
@@ -20,9 +21,65 @@ class ZMovieView: VideoView, ZView {
 
     override fun View() : UIView = this
 
-//    var playerLayer: AVPlayerLayer? = null
-
     constructor() : super(zMainActivityContext!!) {
+        this.setOnErrorListener(object : MediaPlayer.OnErrorListener {
+            override fun onError(mp:MediaPlayer, what:Int, extra:Int) : Boolean {
+                //Return true to get rid of auto-generated alerts
+                var err = ""
+                if (what == MediaPlayer.MEDIA_ERROR_UNKNOWN)
+                    err = "unknown"
+                if (what == MediaPlayer.MEDIA_ERROR_SERVER_DIED)
+                    err = "server died"
+                if (extra == MediaPlayer.MEDIA_ERROR_IO)
+                    err += ", io"
+                if (extra == MediaPlayer.MEDIA_ERROR_MALFORMED)
+                    err += ", malformed"
+                if (extra == MediaPlayer.MEDIA_ERROR_UNSUPPORTED)
+                    err += ", unsupported"
+                if (extra == MediaPlayer.MEDIA_ERROR_TIMED_OUT)
+                    err += ", timed-out"
+                return true
+            }
+        })
+
+        this.setOnInfoListener(object : MediaPlayer.OnInfoListener {
+            override fun onInfo(mp:MediaPlayer, what:Int, extra:Int) : Boolean {
+                var info = ""
+                //if(what == MediaPlayer.MEDIA_INFO_UNKNOWN)
+                //	info = "unknown";
+                if (what == MediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING)
+                    info = "track lagging"
+                //if(what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START)
+                //	info = "rendering started";
+                //if(what == MediaPlayer.MEDIA_INFO_BUFFERING_START)
+                //	info = "buffering started";
+                //if(what == MediaPlayer.MEDIA_INFO_BUFFERING_END)
+                //	info = "buffering ended";
+                if (what == MediaPlayer.MEDIA_INFO_BAD_INTERLEAVING)
+                    info = "bad interleaving"
+                if (what == MediaPlayer.MEDIA_INFO_NOT_SEEKABLE)
+                    info = "not seekable"
+                if (what == MediaPlayer.MEDIA_INFO_METADATA_UPDATE)
+                    info = "metadata updated"
+
+                if (info.length != 0) {
+//                    EventPropagator.sendPlayerEvent(channelnr, getAppContext(), "INFO (" + info + ")" + quickStats())
+                }
+                return false
+            }
+        })
+
+        this.setOnPreparedListener(object : MediaPlayer.OnPreparedListener {
+            override fun onPrepared(mp: MediaPlayer) {
+                val width = mp.getVideoWidth();
+                val height = mp.getVideoHeight();
+                minSize = ZSize(100.0, 100.0 / width * height)
+                val p = parent as? ZContainerView
+                if (p != null) {
+                    p.ArrangeChildren()
+                }
+            }
+        })
     }
 
 //    deinit {
@@ -30,20 +87,16 @@ class ZMovieView: VideoView, ZView {
 //    }
 
     fun SetUrl(url: String) {
-
         val uri = Uri.parse(url)
         super.setVideoURI(uri)
-
-//            val playerItem = AVPlayerItem(url = u)
-//            // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playFinished:) name:AVPlayerItemDidPlayToEndTimeNotification object:playerItem];
-//            player = ZMediaPlayer(playerItem = playerItem)
-//            playerLayer = AVPlayerLayer(player = player!!)
-//            playerLayer!!.videoGravity = .resizeAspect
-//                    this.layer.addSublayer(playerLayer!!)
-//            playerLayer!!.frame = this.bounds
-//            player?.play()
+        Play()
 //            player?.addObserver(this, forKeyPath = "rate", options = NSKeyValueObservingOptions(), context = null)
 //        }
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        holder.setSizeFromLayout()
     }
 
     fun HandleAfterLayout() {
@@ -76,4 +129,12 @@ class ZMovieView: VideoView, ZView {
         get() {
             return super.getDuration().toDouble() / 1000.0
         }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val s = minSize * ZScreen.Scale
+        setMeasuredDimension(ZMath.Ceil(s.w).toInt(), ZMath.Ceil(s.h).toInt())
+    }
 }
+
+/*
+*/

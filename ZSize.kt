@@ -48,33 +48,23 @@ data class ZSize(
 
     operator fun compareTo(s: ZSize) : Int =
             ((Area() - s.Area() * 1000)).toInt()
-
     // will loose presision so half-ass * 1000 hack
+
     fun Maximize(a: ZSize) {
         w = maxOf(w, a.w)
         h = maxOf(h, a.h)
     }
-/*
-    operator fun plusAssign(a: ZSize) {
-        w += a.w
-        h += a.h
+
+    fun Minimize(a: ZSize) {
+        w = minOf(w, a.w)
+        h = minOf(h, a.h)
     }
 
-    operator fun minusAssign(a: ZSize) {
-        w -= a.w
-        h -= a.h
+    fun Swap() {
+        val t = w
+        w = h
+        h = t
     }
-
-    operator fun timesAssign(a: Double) {
-        w *= a
-        h *= a
-    }
-
-    operator fun timesAssign(a: Float) {
-        w *= a.toDouble()
-        h *= a.toDouble()
-    }
-*/
 
     operator fun unaryMinus() : ZSize =
             ZSize(-w, -h)

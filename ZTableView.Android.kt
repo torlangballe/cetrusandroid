@@ -9,9 +9,16 @@ package com.github.torlangballe.cetrusandroid
 import android.content.Context
 import android.widget.ListView
 import android.graphics.*
+import android.view.Gravity
 import android.view.ViewGroup
 import android.view.View
 import android.widget.*
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
+
+
+
+
 
 // TODO: RecyclerView is new modern performant thing to maybe use later?
 
@@ -33,6 +40,7 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
     var scrolling = false
     var drawHandler: ((rect: ZRect, canvas: ZCanvas) -> Unit)? = null // lateinit ?
     var margins = ZSize(0, 0)
+    var spacing = 0.0
 
     private var ladapter: listAdapter? = null
 
@@ -50,7 +58,7 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
         selectionIndex = ZTableIndex(-1)
         isFocusableInTouchMode = true
 
-        layoutMode = ViewGroup.LayoutParams.MATCH_PARENT // was to make getView() work, might not be needed
+        layoutMode = ViewGroup.LayoutParams.WRAP_CONTENT // was to make getView() work, might not be needed
 
         Rect = ZRect(0.0, 0.0, 100.0, 300.0)
 
@@ -62,18 +70,26 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        margins = ZSize(0, 0) // hack to remove margins on android
+//!!        margins = ZSize(0, 0) // hack to remove margins on android
         if (first && owner != null) {
             ladapter = listAdapter(zMainActivityContext!!, owner!!, this)
             adapter = ladapter
         }
+
         setMeasuredDimension(widthMeasureSpec, heightMeasureSpec)
         if (first) {
+            if (margins.h != 0.0) {
+                val viewHeader = LinearLayout(context)
+                viewHeader.orientation = LinearLayout.HORIZONTAL
+                val lp = AbsListView.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, (margins.h * ZScreen.Scale).toInt())
+                viewHeader.layoutParams = lp
+                this.addHeaderView(viewHeader, null, false)
+                this.addFooterView(viewHeader, null, false)
+            }
             //    allowsSelection = true // selectable
             if (selectionIndex.row != -1) {
                 Select(selectionIndex.row)
             }
-//                contentInset = UIEdgeInsetsMake(CGFloat(margins.h), 0, CGFloat(margins.h), 0)
             if (selectable) {
                 choiceMode = ListView.CHOICE_MODE_SINGLE
             }
@@ -180,15 +196,19 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
 
 
     fun GetRowViewFromIndex(index: Int) : ZView? {
-        val firstListItemPosition = getFirstVisiblePosition()
-        val lastListItemPosition = firstListItemPosition + getChildCount() - 1
+        var firstListItemPosition = getFirstVisiblePosition()
+        var lastListItemPosition = firstListItemPosition + getChildCount() - 1
 
-        if (index< firstListItemPosition || index > lastListItemPosition ) {
+        val childIndex = index - firstListItemPosition
+        if (margins.h != 0.0) {
+            firstListItemPosition++
+            lastListItemPosition--
+        }
+        if (index < firstListItemPosition || index > lastListItemPosition ) {
             val l = ladapter!!
             val v = l.getView(index, null, this)
             return v as ZView
         }
-        val childIndex = index - firstListItemPosition
         val v = getChildAt(childIndex)
         return v as ZView
     }
@@ -270,21 +290,27 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
                 size.w = p.LocalRect.size.w
             }
             size.h = owner.TableViewGetHeightOfItem(index)
-            val r = ZRect(size = size).Expanded(ZSize(-table.margins.w, 0.0))
-            val ov = owner.TableViewSetupCell(cellSize = r.size, index = index)
-            zLayoutViewAndScale(ov!!, r)
+            var r = ZRect(size = size)
+            var ov = owner.TableViewSetupCell(cellSize = size - ZSize(0.0, table.spacing), index = index)
+            var outView = ov
+            if (!table.margins.IsNull() || table.spacing != 0.0) {
+                val container = ZCustomView("list.row.container")
+                zLayoutViewAndScale(container, r)
+                container.minSize = r.size
+                container.addView(ov!!)
+                outView = container
+            }
+            val or = r.Expanded(ZSize(-table.margins.w, 0.0))
+            or.size.h -= table.spacing
+            zLayoutViewAndScale(ov!!, or)
 
             val cv = ov as? ZContainerView
             if (cv != null) {
                 cv.ArrangeChildren()
             }
-//            ov!!.left = r.Min.x.toInt()
-//            ov!!.top = r.Min.y.toInt()
-//            ov!!.right = r.Max.x.toInt()
-//            ov!!.bottom= r.Max.y.toInt()
-            ov!!.minSize = r.size
+            ov.minSize = r.size
 
-            return ov
+            return outView!!
         }
         return vi
     }

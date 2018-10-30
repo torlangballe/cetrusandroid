@@ -206,7 +206,7 @@ open class ZStackView: ZContainerView {
                 }
             }
         }
-        //        HandleAfterLayout()
+        HandleAfterLayout()
     }
 }
 

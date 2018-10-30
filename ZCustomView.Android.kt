@@ -6,10 +6,16 @@
 package com.github.torlangballe.cetrusandroid
 
 import android.graphics.Canvas
+import android.media.MediaPlayer
 import android.view.GestureDetector
 import android.view.View
 import android.view.ViewGroup
 import android.view.MotionEvent
+import android.widget.Toast
+import tv.bridgetech.pocketprobe.MainActivity
+import android.view.GestureDetector.OnDoubleTapListener
+
+
 
 interface ZCustomViewDelegate {
     fun DrawInRect(rect: ZRect, canvas: ZCanvas)
@@ -79,29 +85,40 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
     override fun CalculateSize(total: ZSize): ZSize =
             minSize
 
-    override fun onDown(e: MotionEvent): Boolean { return true }
+    override fun onDown(e: MotionEvent): Boolean {
+        return handleTouch(this, e, touchInfo)
+    }
     override fun onShowPress(e: MotionEvent) { return }
-    override fun onSingleTapUp(e: MotionEvent): Boolean { return true }
+    override fun onSingleTapUp(e: MotionEvent): Boolean {
+        return handleTouch(this, e, touchInfo)
+    }
     override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean { return true }
-    override fun onLongPress(e: MotionEvent) { }
-    override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean { return true }
+
+    override fun onLongPress(e: MotionEvent) {
+        handleGesture(this, ZGestureType.longpress, touchInfo, e, null, ZPos(0.0, 0.0), 1)
+    }
+
+    override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+        val v = ZPos(velocityX.toDouble(), velocityY.toDouble())
+        return handleGesture(this, ZGestureType.swipe, touchInfo, e1, e2, v, 1)
+    }
     override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-        return handleGesture(this, ZGestureType.tap, touchInfo, e, 1)
+        return handleGesture(this, ZGestureType.tap, touchInfo, e, null, ZPos(0.0, 0.0),1)
     }
     override fun onDoubleTap(e: MotionEvent): Boolean { return true }
     override fun onDoubleTapEvent(e: MotionEvent): Boolean {
-        return handleGesture(this, ZGestureType.tap, touchInfo, e, 2)
+        return handleGesture(this, ZGestureType.tap, touchInfo, e, null, ZPos(0.0, 0.0),2)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         var insize = ZSize(widthMeasureSpec.toDouble(), heightMeasureSpec.toDouble())
 //        if (insize.w > 9000 || insize.h > 9000) {
-//            val s = LocalRect.size * ZScreen.Scale
+//            val s = LocalRect.size ZMath.Ceil* ZScreen.Scale
 //            setMeasuredDimension(s.w.toInt(), s.h.toInt())
 //            return
 //        }
         val s = CalculateSize(insize) * ZScreen.Scale
-        setMeasuredDimension(s.w.toInt(), s.h.toInt())
+        setMeasuredDimension(ZMath.Ceil(s.w).toInt(), ZMath.Ceil(s.h).toInt())
     }
 
     override fun onLayout(p0: Boolean, p1: Int, p2: Int, p3: Int, p4: Int) {
@@ -204,59 +221,15 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
             touchInfo.tapTarget!!.HandlePressed(this, pos = pos)
         }
     }
-/*
-    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        /*
-         * This method JUST determines whether we want to intercept the motion.
-         * If we return true, onTouchEvent will be called and we do the actual
-         * scrolling there.
-         */
-        return when (ev.actionMasked) {
-            // Always handle the case of the touch gesture being complete.
-            MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> {
-                // Release the scroll.
-                amScrolling = false
-                false // Do not intercept touch event, let the child handle it
-            }
-            MotionEvent.ACTION_MOVE -> {
-                if (amScrolling) {
-                    // We're currently scrolling, so yes, intercept the
-                    // touch event!
-                    true
-                } else {
 
-                    // If the user has dragged her finger horizontally more than
-                    // the touch slop, start the scroll
-
-                    // left as an exercise for the reader
-                    val xDiff: Int = calculateDistanceX(ev)
-
-                    // Touch slop should be calculated using ViewConfiguration
-                    // constants.
-                    if (xDiff > mTouchSlop) {
-                        // Start scrolling!
-                        mIsScrolling = true
-                        true
-                    } else {
-                        false
-                    }
-                }
-            }
-                ...
-            else -> {
-                // In general, we don't want to intercept touch events. They should be
-                // handled by the child view.
-                false
-            }
-        }
-    }
-*/
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (touchInfo.gestureDetector != null && touchInfo.gestureDetector!!.onTouchEvent(event)) {
+        if (touchInfo.gestureDetector != null) {
+            touchInfo.gestureDetector!!.onTouchEvent(event)
+            super.onTouchEvent(event)
             return true
         }
-        super.onTouchEvent(event)
         return handleTouch(this, event, touchInfo)
+        return super.onTouchEvent(event)
     }
 
     open fun HandleBeforeLayout() {
@@ -357,6 +330,9 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
             tinfo = addGestureWithTouchInfoTo(gl, gd, this, tinfo, type, taps, touches, duration, movement, dir)
             if (vc != null) {
                 vc.touchInfo = tinfo
+                if (taps > 1) {
+                    vc.touchInfo.wantsMultiTap = true
+                }
             }
         }
     }
@@ -382,15 +358,15 @@ private fun addGesture(g: UIGestureRecognizer, view: ZView, handler: ZCustomView
 
 fun zSetViewFrame(v:View, frame: ZRect) {
     val scale = ZScreen.Scale
-    v.left = (frame.Min.x * scale).toInt()
-    v.top = (frame.Min.y * scale).toInt()
-    v.right = (frame.Max.x * scale).toInt()
-    v.bottom = (frame.Max.y * scale).toInt()
+    v.left = ZMath.Floor(frame.Min.x * scale).toInt()
+    v.top = ZMath.Floor(frame.Min.y * scale).toInt()
+    v.right = ZMath.Ceil(frame.Max.x * scale).toInt()
+    v.bottom = ZMath.Ceil(frame.Max.y * scale).toInt()
 }
 
 fun zLayoutViewAndScale(view:View, frame: ZRect) {
     val scale = ZScreen.Scale
-    view.layout((frame.Min.x * scale).toInt(), (frame.Min.y * scale).toInt(), (frame.Max.x * scale).toInt(), (frame.Max.y * scale).toInt())
+    view.layout(ZMath.Floor(frame.Min.x * scale).toInt(), ZMath.Floor(frame.Min.y * scale).toInt(), ZMath.Ceil(frame.Max.x * scale).toInt(), ZMath.Ceil(frame.Max.y * scale).toInt())
 }
 
 fun zRemoveViewFromSuper(view:View) {

@@ -67,7 +67,7 @@ data class ZTextDraw(
         val textPaint = TextPaint()
         textPaint.typeface = font.typeface
         textPaint.isAntiAlias = true
-        textPaint.textSize  = font.size.toFloat() * ZScreen.Scale.toFloat()
+        textPaint.textSize  = ZMath.Ceil(font.size * ZScreen.Scale).toFloat()
         textPaint.color = color.color.toArgb()
         when (this.type) {
             ZTextDrawType.stroke -> {
@@ -83,7 +83,7 @@ data class ZTextDraw(
 
     fun calculateSize() : ZSize {
         var textPaint = makeTextPaint()
-        val builder = StaticLayout.Builder.obtain (text, 0, text.length, textPaint, (rect.size.w * ZScreen.Scale).toInt())
+        val builder = StaticLayout.Builder.obtain (text, 0, text.length, textPaint, ZMath.Ceil(rect.size.w * ZScreen.Scale).toInt())
         val slayout = builder.build()
 
         val width = textPaint.measureText(text)
@@ -98,10 +98,10 @@ data class ZTextDraw(
     }
 
     fun GetBounds(noWidth: Boolean = false) : ZRect {
+        val textPaint = makeTextPaint()
+        val height = font.lineHeight * ZScreen.Scale + textPaint.descent() // -textPaint.ascent() +
         if (rect.IsNull) {
-            val textPaint = makeTextPaint()
             val width = textPaint.measureText(text)
-            val height = -textPaint.ascent() + textPaint.descent()
             var s = ZSize(width.toDouble(), height.toDouble())
             s /= ZScreen.Scale
             return ZRect(size = s)
@@ -116,7 +116,7 @@ data class ZTextDraw(
 
         size /= ZScreen.Scale
         if (maxLines > 1) {
-            size.h = (font.lineHeight).toDouble() * maxLines.toDouble()
+            size.h = (height).toDouble() * maxLines.toDouble() / ZScreen.Scale
         }
         return rect.Align(size, align = alignment)
     }
@@ -142,19 +142,19 @@ data class ZTextDraw(
         var ts = GetBounds().size
         val p: ZPos
         if (pos == null) {
-            val r = rect
+            val r = rect.copy()
             ts = ZSize(ceil(ts.w), ceil(ts.h))
             val ra = rect.Align(ts, align = alignment)
             if ((alignment and ZAlignment.Top)) {
                 r.Max.y = ra.Max.y
             } else if ((alignment and ZAlignment.Bottom)) {
-                r.pos.y = r.Max.y - ra.size.h
+                r.Min.y = r.Max.y - ra.size.h - (font.lineHeight).toDouble() * 0.3
             } else {
-                r.pos.y = ra.pos.y - (font.lineHeight).toDouble() * 0.3
+                r.Max.y = ra.pos.y - (font.lineHeight).toDouble() * 0.3
             }
             p = ZPos(r.Min.x, r.Min.y + font.size * 1.1)
             if (alignment and ZAlignment.Right) {
-                p.x = r.Max.y
+                p.x = r.Max.x
             } else if (alignment and ZAlignment.HorCenter) {
                 p.x = r.Center.x
             }

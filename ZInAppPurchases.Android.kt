@@ -20,7 +20,7 @@ class ZInAppPurchases{
 //    var productsRequest: SKProductsRequest? = null
     var gotProductsRequestHandler: ((products: List<ZInAppProduct>, error: ZError?) -> Unit)? = null
 
-    fun RequestProducts(ids: Set<String>, got: (products: List<ZInAppProduct>, error: ZError?) -> Unit) {
+    fun RequestProducts(ids: MutableList<String>, got: (products: MutableList<ZInAppProduct>, error: ZError?) -> Unit) {
 //        productsRequest?.cancel()
 //        gotProductsRequestHandler = got
 //        productsRequest = SKProductsRequest(productIdentifiers = ids)

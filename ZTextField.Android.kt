@@ -95,6 +95,10 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
 
     private var target: ZTextEditDelegate? = null
 
+    var keyboardType = ZKeyboardType.default
+    var capType = ZAutocapitalizationType.none
+    var returnType = ZReturnKeyType.default
+
     var TextLines:Int
         get() {
             return xMaxLines
@@ -142,7 +146,7 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
     //        attributedPlaceholder = ZAttributedString(string:text, attributes:[NSAttributedStringKey.foregroundColor:color.rawColor])
     //    }
     constructor(text: String = "", minWidth: Double = 0.0, maxWidth: Double = 0.0, font: ZFont? = null, alignment: ZAlignment = ZAlignment.Left, margin: ZSize = ZSize(0.0, 0.0)) : super(zMainActivityContext!!) {
-
+        TextString = text
         this.minWidth = minWidth
         this.maxWidth = maxWidth
         this.xAlignment = alignment
@@ -182,7 +186,9 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
         tdraw.text = text.toString()
         var bsize = tdraw.GetBounds().size
         bsize.w += 1
-        bsize.h = maxOf(bsize.h, 30.0)
+        bsize.h += margin.h + 10
+        bsize.h = maxOf(bsize.h, 55.0)
+        bsize.w += margin.w
 
         return bsize
     }
@@ -207,8 +213,6 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
             total.h = h
         }
         var s = CalculateSize(total)
-        s.h += margin.h + 10
-        s.w += margin.w
         s *= scale
         setMeasuredDimension((s.w).toInt(), s.h.toInt())
     }
@@ -271,8 +275,10 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
                 c.FillPath(path)
 
                 if (xStrokeWidth != 0.0) {
+                    val rs = r + ZRect(xStrokeWidth / 2.0, xStrokeWidth / 2.0, - xStrokeWidth / 2.0 - 1, - xStrokeWidth / 2.0 - 1)
+                    val spath = ZPath(rect = rs, corner = ZSize(xCornerRadius, xCornerRadius))
                     c.SetColor(xStrokeColor)
-                    c.StrokePath(path, width = xStrokeWidth)
+                    c.StrokePath(spath, width = xStrokeWidth)
                 }
             }
             DrawInRect(r, canvas = c)
@@ -280,8 +286,9 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
         }
         if (xFirst) {
             val scale = ZScreen.Scale
-            val w = (margin.w * scale).toInt()
-            val h = (6 * scale).toInt()
+            val w = ZMath.Ceil(margin.w * scale).toInt()
+            var hm = maxOf(margin.h, 6.0)
+            val h = (hm * scale).toInt()
             this.setPadding(w, h, w, 0)
             xFirst = false
         }
@@ -324,7 +331,47 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
     }
 
     fun SetKeyboardType(type: ZKeyboardType) {
-//        this.keyboardType = type
+        keyboardType = type
+        updateKeyboardPreferences()
+    }
+
+    fun updateKeyboardPreferences() {
+        var t =
+        when (keyboardType) {
+            ZKeyboardType.`default` -> InputType.TYPE_CLASS_TEXT
+            ZKeyboardType.asciiCapable -> InputType.TYPE_CLASS_TEXT
+            ZKeyboardType.numbersAndPunctuation -> InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL or InputType.TYPE_NUMBER_FLAG_SIGNED
+            ZKeyboardType.URL -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            ZKeyboardType.numberPad -> InputType.TYPE_CLASS_NUMBER
+            ZKeyboardType.phonePad -> InputType.TYPE_CLASS_PHONE
+            ZKeyboardType.namePhonePad -> InputType.TYPE_CLASS_PHONE
+            ZKeyboardType.emailAddress -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+            ZKeyboardType.decimalPad -> InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL or InputType.TYPE_NUMBER_FLAG_SIGNED
+            ZKeyboardType.twitter -> InputType.TYPE_CLASS_TEXT
+            ZKeyboardType.webSearch -> InputType.TYPE_CLASS_TEXT
+            ZKeyboardType.asciiCapableNumberPad -> InputType.TYPE_CLASS_NUMBER
+        }
+        if (TextLines > 1) {
+            t = t or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        }
+        var c = when(capType) {
+            ZAutocapitalizationType.allCharacters -> InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+            ZAutocapitalizationType.words -> InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            ZAutocapitalizationType.sentences -> InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            else -> 0
+        }
+        val i = t or c
+        this.inputType = i
+    }
+
+    fun SetAutoCapType(type: ZAutocapitalizationType) {
+        capType = type
+        updateKeyboardPreferences()
+    }
+
+    fun SetReturnKeyType(type: ZReturnKeyType) {
+        returnType = type
+        updateKeyboardPreferences()
     }
 
     fun SetEnablesReturnKeyAutomatically(on: Boolean) {
@@ -333,14 +380,6 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
 
     fun SetKeyboardDark(dark: Boolean) {
 //        this.keyboardAppearance = if (dark) .dark else .light
-    }
-
-    fun SetAutoCapType(type: ZAutocapitalizationType) {
-//        this.autocapitalizationType = type
-    }
-
-    fun SetReturnKeyType(type: ZReturnKeyType) {
-//        this.returnKeyType = type
     }
 
     fun InsertTextAtSelection(str: String) {

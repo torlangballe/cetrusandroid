@@ -6,10 +6,16 @@
 
 package com.github.torlangballe.cetrusandroid
 
+import android.content.res.Resources
 import android.graphics.*
 import android.graphics.Bitmap
 import android.graphics.LightingColorFilter
-
+import java.io.BufferedInputStream
+import java.io.File
+import java.io.FileInputStream
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import android.graphics.NinePatch
 
 private fun getScaleFromName(name:String) : Float {
     val stub = ZFileUrl.GetPathParts(name).stub
@@ -91,7 +97,9 @@ class ZImage(var bitmap:Bitmap? = null) {
             return ZURLSessionTask()
         }
         fun FromFile(file: ZFileUrl) : ZImage? {
-            ZNOTIMPLEMENTED()
+            if (file.Extension == "ppm") {
+                return imageFromPpm(file)
+            }
             return null
         }
         fun GetNamedImagesFromWildcard(wild: String) : List<ZImage> {
@@ -324,4 +332,104 @@ class ZImageCache{
     }
 }
 
+private fun imageFromPpm(file:ZFileUrl): ZImage? {
+    var f:FileInputStream? = null
+    try {
+        f = FileInputStream(File(file.FilePath))
+    } catch (e:Exception) {
+        ZDebug.Print("imageFromPPM error:", e)
+        return null
+    }
+    val reader = BufferedInputStream(f!!)
+    if (reader.read() !== 'P'.toInt() || reader.read() !== '6'.toInt())
+        return null
 
+    reader.read() //Eat newline
+    var widths = ""
+    var heights = ""
+    while (true) {
+        val temp = reader.read().toChar()
+        if (temp == ' ') {
+            break
+        }
+        widths += temp
+    }
+    while (true) {
+        val temp = reader.read().toChar()
+        if (temp < '0' || temp > '9') {
+            break
+        }
+        heights += temp
+    }
+
+    if (reader.read() !== '2'.toInt() || reader.read() !== '5'.toInt() || reader.read() !== '5'.toInt()) {
+        return null
+    }
+    reader.read()
+
+    val width = Integer.valueOf(widths)
+    val height = Integer.valueOf(heights)
+    val colors = IntArray(width * height)
+
+    val pixel = ByteArray(3)
+    var len = 0
+    var cnt = 0
+    var total = 0
+    val rgb = IntArray(3)
+    while (true) {
+        val len = reader.read(pixel)
+        if (len <= 0) {
+            break
+        }
+        for (i in 0 until len) {
+            rgb[cnt] = if (pixel[i] >= 0) pixel[i].toInt() else pixel[i] + 255
+            if (++cnt == 3) {
+                cnt = 0
+                colors[total++] = Color.rgb(rgb[0], rgb[1], rgb[2])
+            }
+        }
+    }
+    val image = ZImage()
+    image.bitmap = Bitmap.createBitmap(colors, width, height, Bitmap.Config.ARGB_8888)
+    return image
+}
+
+object NinePatchBitmapFactory {
+    private val NO_COLOR = 0x00000001 // The 9 patch segment is not a solid color.
+    private val TRANSPARENT_COLOR = 0x00000000 // The 9 patch segment is completely transparent.
+
+    fun createNinePatch(res: Resources, bitmap: Bitmap, top: Int, left: Int, bottom: Int, right: Int): NinePatch {
+        val buffer = getByteBuffer(top, left, bottom, right)
+        val is9 = NinePatch.isNinePatchChunk(buffer.array())
+        return NinePatch(bitmap, buffer.array())
+    }
+
+    private fun getByteBuffer(top: Int, left: Int, bottom: Int, right: Int): ByteBuffer {
+        val buffer = ByteBuffer.allocate(84).order(ByteOrder.nativeOrder())
+        buffer.put(0x01.toByte())
+        buffer.put(0x02.toByte())
+        buffer.put(0x02.toByte())
+        buffer.put(0x09.toByte())
+        buffer.putInt(0)
+        buffer.putInt(0)
+        buffer.putInt(0)
+        buffer.putInt(0)
+        buffer.putInt(0)
+        buffer.putInt(0)
+        buffer.putInt(0)
+        buffer.putInt(left)
+        buffer.putInt(right)
+        buffer.putInt(top)
+        buffer.putInt(bottom)
+        buffer.putInt(NO_COLOR)
+        buffer.putInt(NO_COLOR)
+        buffer.putInt(NO_COLOR)
+        buffer.putInt(NO_COLOR)
+        buffer.putInt(NO_COLOR)
+        buffer.putInt(NO_COLOR)
+        buffer.putInt(NO_COLOR)
+        buffer.putInt(NO_COLOR)
+        buffer.putInt(NO_COLOR)
+        return buffer
+    }
+}

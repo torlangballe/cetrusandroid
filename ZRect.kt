@@ -17,7 +17,7 @@ data class ZRect(
                 return ZRect(0.0, 0.0, 0.0, 0.0)
             }
 
-        fun MergeAll(rects: List<ZRect>) : List<ZRect> {
+        fun MergeAll(rects: MutableList<ZRect>) : MutableList<ZRect> {
             var merged = true
             var rold = rects
             while (merged) {
@@ -76,7 +76,7 @@ data class ZRect(
         set(newValue) {
             size.w += (pos.x - newValue.x)
             size.h += (pos.y - newValue.y)
-            pos = newValue
+            pos = newValue.copy()
         }
 
     fun SetMaxX(x: Double) {
@@ -287,11 +287,19 @@ data class ZRect(
         MaxPos.y = minOf(MaxPos.y, rect.MaxPos.y)
     }
 
+    fun copy() : ZRect {
+        var r = ZRect()
+        r.pos = pos.copy()
+        r.size = size.copy()
+
+        return r
+    }
+
     fun UnionWith(rect: ZRect) {
         if (!rect.IsNull) {
             if (IsNull) {
-                pos = rect.pos
-                size = rect.size
+                pos = rect.pos.copy()
+                size = rect.size.copy()
             } else {
                 if (rect.Min.x < Min.x) {
                     Min.x = rect.Min.x

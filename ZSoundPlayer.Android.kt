@@ -5,6 +5,10 @@
 //
 package com.github.torlangballe.cetrusandroid
 
+import android.media.MediaPlayer
+
+var audioPlayer:MediaPlayer? = null
+
 enum class ZAudioRemoteCommand { none, play, pause, stop, togglePlayPause, nextTrack, previousTrack, beginSeekingBackward, endSeekingBackward, beginSeekingForward, endSeekingForward }
 
 class ZSoundPlayer { // NSObject, AVAudioPlayerDelegate
@@ -13,7 +17,7 @@ class ZSoundPlayer { // NSObject, AVAudioPlayerDelegate
         var current: ZSoundPlayer? = null
 
         fun StopLastPlayedSound() {
-//            ZSoundPlayer.lastPlayer?.stop()
+            audioPlayer?.stop()
         }
 
         fun SetCurrentTrackPos(pos: Double, duration: Double) {
@@ -49,7 +53,7 @@ class ZSoundPlayer { // NSObject, AVAudioPlayerDelegate
         if (!ZStr.HasPrefix(vurl, "file:")) {
             val file = ZGetResourceFileUrl("sound/" + vurl)
             if (file.Exists()) {
-                vurl = "$file.url!!"
+                vurl = file.AbsString
             } else {
                 done?.invoke()
                 return
@@ -58,17 +62,18 @@ class ZSoundPlayer { // NSObject, AVAudioPlayerDelegate
         if (stopLast) {
             StopLastPlayedSound()
         }
-//        do {
-//            audioPlayer = AVAudioPlayer(contentsOf = ZUrl(string = vurl).url!! as URL)
-//        } catch let error {
-//            ZDebug.Print("sound playing error:", error.localizedDescription, ZFileUrl(string = vurl).DataSizeInBytes, vurl)
-//        }
-//        if (volume != -1) {
-//            audioPlayer?.volume = volume
-//        }
-        ZDebug.Print("Play Audio:", url)
-//        audioPlayer?.play()
-//        ZSoundPlayer.lastPlayer = audioPlayer
+
+        audioPlayer = MediaPlayer()
+
+        try {
+            val file = ZFileUrl(string = vurl)
+            audioPlayer!!.setDataSource(file.FilePath)
+            audioPlayer!!.prepare()
+            audioPlayer!!.start()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         if (done != null || loop) {
             current = this
             this.done = done
@@ -83,6 +88,6 @@ class ZSoundPlayer { // NSObject, AVAudioPlayerDelegate
 
     fun Stop() {
         done?.invoke()
-//        audioPlayer?.stop()
+        audioPlayer?.stop()
     }
 }

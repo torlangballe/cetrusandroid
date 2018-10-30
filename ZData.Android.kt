@@ -1,12 +1,17 @@
 package com.github.torlangballe.cetrusandroid
 
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.lang.Exception
+
 //
 //  ZData.Android.kt
 //
 //  Created by Tor Langballe on /15/08/18.
 //
 
-class ZData(val data:ByteArray = ByteArray(0)) {
+class ZData(var data:ByteArray = ByteArray(0)) {
     constructor(fileUrl: ZFileUrl) : this(ByteArray(0)) {
         ZNOTIMPLEMENTED()
     }
@@ -29,7 +34,7 @@ class ZData(val data:ByteArray = ByteArray(0)) {
     }
 
     fun GetString(): String {
-        return data.toString()
+        return String(bytes = data)
     }
 
     fun GetHexString(): String {
@@ -41,12 +46,35 @@ class ZData(val data:ByteArray = ByteArray(0)) {
     }
 
     fun SaveToFile(file: ZFileUrl): ZError? {
-        ZNOTIMPLEMENTED()
+        val f = File(file.FilePath)
+        val bin = FileOutputStream(f)
+        try {
+            bin.write(data)
+        } catch(e:Exception) {
+            return ZNewError("ZData.SaveToFile: " + e.toString())
+        } finally {
+            bin.close()
+        }
         return null
     }
 
     fun LoadFromFile(file: ZFileUrl): ZError? {
-        ZNOTIMPLEMENTED()
+        if (!file.Exists()) {
+            return ZNewError("File doesn't exist")
+        }
+        val f = File(file.FilePath)
+        val length = f.length().toInt()
+        var contents = ""
+        if (length > 0) {
+            val bytes = ByteArray(length)
+            val bin = FileInputStream(f)
+            try {
+                bin.read(bytes)
+            } finally {
+                bin.close()
+            }
+            data = bytes
+        }
         return null
     }
 

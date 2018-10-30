@@ -11,6 +11,7 @@ import java.net.URL
 //import java.nio.file.Files.isDirectory
 import java.io.File
 import android.net.Uri
+import java.net.URI
 import java.net.URISyntaxException
 
 
@@ -90,7 +91,11 @@ class ZFileUrl: ZUrl {
 
     val FilePath: String
         get() {
-            val str = url?.path ?: ""
+            if (url == null) {
+                return ""
+            }
+            val uri = URI(ZStr.UrlDecode(url!!.path))
+            val str = uri.path
             if (IsFolder() && ZStr.Tail(str) != "/") {
                 return str + "/"
             }
@@ -230,12 +235,8 @@ class ZFileUrl: ZUrl {
     }
 
     fun AppendedPath(path: String, isDir: Boolean = false) : ZFileUrl {
-        val builder = Uri.Builder()
-
-        builder.path(FilePath)
-        builder.appendPath(path)
-        val out = builder.build()
-        return ZFileUrl(filePath = out.toString())
+        val file = File(FilePath, path)
+        return ZFileUrl(filePath = file.absolutePath)
     }
 }
 

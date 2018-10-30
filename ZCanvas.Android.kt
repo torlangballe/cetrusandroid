@@ -7,6 +7,10 @@
 package com.github.torlangballe.cetrusandroid
 
 import android.graphics.*
+import android.graphics.RectF
+import android.graphics.Shader.TileMode
+import android.graphics.LinearGradient
+import android.graphics.Shader
 
 typealias ZMatrix = Matrix
 
@@ -29,13 +33,21 @@ fun ZMatrixForRotationDeg(deg: Double) : ZMatrix {
     return transform
 }
 
-data class ZCanvas(var context: Canvas) {
+private fun makePaint() : Paint {
     var paint = Paint()
+    paint.setAntiAlias(true)
+    return paint
+}
+
+data class ZCanvas(var context: Canvas) {
+    var paint = makePaint()
     var tileImage: ZImage? = null
 
     fun SetColor(color: ZColor, opacity: Double = -1.0) {
         if (color.tileImage!= null) {
             this.tileImage = color.tileImage
+        } else {
+            this.tileImage = null
         }
         var vcolor = color
         if (opacity != -1.0) {
@@ -162,7 +174,6 @@ data class ZCanvas(var context: Canvas) {
 
     fun DrawGradient(path: ZPath? = null, colors: List<ZColor>, pos1: ZPos, pos2: ZPos, locations: List<Float> = mutableListOf<Float>()) {
         if (colors.count() > 0) {
-            val c = colors.first()
             var r = ZRect()
             r.Min = pos1
             r.Max = pos2
@@ -170,8 +181,21 @@ data class ZCanvas(var context: Canvas) {
             if (path != null) {
                 p = path
             }
-            SetColor(c)
-            FillPath(p)
+            var cols = IntArray(colors.count())
+            colors.forEachIndexed { i, c ->
+                cols[i] = c.color.toArgb()
+            }
+            var pos:FloatArray? = null
+            if (locations.size > 0) {
+                pos = FloatArray(locations.count())
+                locations.forEachIndexed { i, l ->
+                    pos[i] = l
+                }
+            }
+            val shader = LinearGradient(pos1.x.toFloat(), pos1.y.toFloat(), pos2.x.toFloat(), pos2.y.toFloat(), cols, pos, TileMode.CLAMP)
+            val paint = Paint()
+            paint.shader = shader
+            context.drawPath(p.path, paint)
         }
     }
 
@@ -181,6 +205,7 @@ data class ZCanvas(var context: Canvas) {
     fun DrawText(text:String, font: ZFont, color: ZColor, pos: ZPos, align: ZAlignment) {
         var paint = Paint()
         paint.color = color.color.toArgb()
+        paint.isAntiAlias = true
         var a = Paint.Align.LEFT
         if (align and ZAlignment.Right) {
             a = Paint.Align.RIGHT

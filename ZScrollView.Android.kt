@@ -36,17 +36,15 @@ class ZScrollView: ScrollView, ZView {
     }
 
     override fun onLayout(p0: Boolean, p1: Int, p2: Int, p3: Int, p4: Int) {
-//        if (child != null) {
-//            val s = ZSize((frame.size.width).toFloat(), 3000)
-//            var size = ZSize(child!!.View().sizeThatFits(s.GetCGSize()))
-//            size.w = s.w
-//            var r = ZRect(size = size)
-//            r += margin
-//            child!!.View().frame = r.GetCGRect()
-//            this.contentSize = size.GetCGSize()
-//            child?.ArrangeChildren()
-//            this.delegate = this
-//        }
+        if (child != null) {
+            val s = ZSize(LocalRect.size.w, 9000.0)
+            val size = zConvertViewSizeThatFitstToZSize(child!!, s)
+            size.w = s.w
+            var r = ZRect(size = size)
+            r += margin
+            zLayoutViewAndScale(child!!, r)
+            child!!.ArrangeChildren()
+        }
     }
 
     fun ArrangeChildren() {

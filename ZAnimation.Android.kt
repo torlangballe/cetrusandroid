@@ -13,6 +13,8 @@ class ZAnimation {
                 animations()
                 completion?.invoke(true)
             } else {
+                // TODO: Make animation
+                animations()
                 completion?.invoke(true) // TODO: Do something!!
             }
         }

@@ -19,10 +19,10 @@ typealias UIView = View
 
 fun uiViewFrame(v: UIView) : ZRect {
     val scale = ZScreen.Scale
-    val left = v.left.toDouble() / scale
-    val top = v.top.toDouble() / scale
-    val right = v.right.toDouble() / scale
-    val bottom = v.bottom.toDouble() / scale
+    val left = ZMath.Floor(v.left.toDouble() / scale)
+    val top = ZMath.Floor(v.top.toDouble() / scale)
+    val right = ZMath.Ceil(v.right.toDouble() / scale)
+    val bottom = ZMath.Ceil(v.bottom.toDouble() / scale)
     return ZRect(left, top, right, bottom)
 }
 
@@ -47,10 +47,10 @@ interface ZView {
         get() = uiViewFrame(View())
         set(r) {
             val scale = ZScreen.Scale
-            View().left = (r.Min.x * scale).toInt()
-            View().right = (r.Max.x * scale).toInt()
-            View().top = (r.Min.y * scale).toInt()
-            View().bottom = (r.Max.y * scale).toInt()
+            View().left = ZMath.Floor(r.Min.x * scale).toInt()
+            View().right = ZMath.Ceil(r.Max.x * scale).toInt()
+            View().top = ZMath.Floor(r.Min.y * scale).toInt()
+            View().bottom = ZMath.Ceil(r.Max.y * scale).toInt()
         }
 
     val LocalRect: ZRect
@@ -75,9 +75,9 @@ interface ZView {
     }
 
     fun Show(show: Boolean = true) {
-        var v = View.INVISIBLE
+        var v = View.GONE //INVISIBLE
         if (show) {
-            v = View.VISIBLE
+//            v = View.VISIBLE
         }
         View().setVisibility(v)
     }
@@ -308,6 +308,7 @@ data class ZTouchInfo(val dummy:Int = 0) {
     var doPressed: ((pos: ZPos) -> Unit)? = null
     var gestures = mutableListOf<ZGestureInfo>()
     var gestureDetector: GestureDetectorCompat? = null
+    var wantsMultiTap = false
 }
 
 fun handleTouch(view: ZView, event: MotionEvent, info: ZTouchInfo): Boolean {
@@ -345,33 +346,58 @@ fun handleTouch(view: ZView, event: MotionEvent, info: ZTouchInfo): Boolean {
             info.touchDownRepeatTimer.Stop()
         }
     } else if (event.action == MotionEvent.ACTION_MOVE) {
-        if (info.tapTarget != null || info.handlePressedInPosFunc != null) {
+        if (info.tapTarget != null) {
             val inside = view.Rect.Contains(pos)
-            if (info.handlePressedInPosFunc != null) {
-                info.handlePressedInPosFunc!!(pos)
-            } else if (!info.tapTarget!!.HandleTouched(view, state = ZGestureState.changed, pos = pos, inside = inside)) {
-                if (info.tapTarget != null) {
-                    info.tapTarget?.HandlePressed(view, pos)
-                }
+//            if (info.handlePressedInPosFunc != null) {
+//                info.handlePressedInPosFunc!!(pos)
+            //} else
+            if (!info.tapTarget!!.HandleTouched(view, state = ZGestureState.changed, pos = pos, inside = inside)) {
+//                if (info.tapTarget != null) {
+//                    info.tapTarget?.HandlePressed(view, pos)
+//                }
             }
-            info.touchDownRepeatTimer.Stop()
+//            info.touchDownRepeatTimer.Stop()
         }
     }
     return false
 }
 
-fun handleGesture(view: ZView, type: ZGestureType, touchInfo: ZTouchInfo, e:MotionEvent, taps:Int) : Boolean {
+fun handleGesture(view: ZView, type: ZGestureType, touchInfo: ZTouchInfo, e1:MotionEvent, e2:MotionEvent?, velocity:ZPos, taps:Int) : Boolean {
     for (g in touchInfo.gestures) {
-        if (g.type == type && g.taps == taps && g.touches == e.pointerCount) {
+        if (g.type == type && g.taps == taps && g.touches == e1.pointerCount) {
             val scale = ZScreen.Scale
-            val pos = (ZPos(e.x, e.y) - view.Rect.pos) / scale
+            val pos = (ZPos(e1.x, e1.y) - view.Rect.pos) / scale
             val delta = ZPos(0.0, 0.0)
-            val align = ZAlignment.None
-            var velocity = ZPos(0.0, 0.0)
-            val state = ZGestureState.ended
+            var align = ZAlignment.None
+            var state = ZGestureState.ended
             val gvalue = 0f
             val name = ""
-            return g.target?.HandleGestureType(type, view = view, pos = pos, delta = delta, state = state, taps = taps, touches = e.pointerCount, dir = align, velocity = velocity, gvalue = gvalue, name = name) ?: false
+            if (type == ZGestureType.longpress) {
+                state = ZGestureState.began
+            }
+            if (type == ZGestureType.swipe) {
+                val SWIPE_THRESHOLD = 100
+                val SWIPE_VELOCITY_THRESHOLD = 100
+
+                val diffY = e2!!.y - e1.y
+                val diffX = e2!!.x - e1.x
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocity.x) > SWIPE_VELOCITY_THRESHOLD) {
+                    if (diffX > 0.0) {
+                        align = ZAlignment.Right
+                    } else {
+                        align = ZAlignment.Left
+                    }
+                }  else if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocity.y) > SWIPE_VELOCITY_THRESHOLD) {
+                    if (diffY > 0.0) {
+                        align = ZAlignment.Bottom
+                    } else {
+                        align = ZAlignment.Top
+                    }
+                } else {
+                    return false
+                }
+            }
+            return g.target?.HandleGestureType(type, view = view, pos = pos, delta = delta, state = state, taps = taps, touches = e1.pointerCount, dir = align, velocity = velocity, gvalue = gvalue, name = name) ?: false
         }
     }
     return false

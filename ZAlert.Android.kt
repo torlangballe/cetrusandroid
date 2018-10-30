@@ -23,15 +23,23 @@ class ZAlert {
                 vcancel = ZWords.GetCancel()
             }
 
-            val alertDialog = AlertDialog.Builder(zMainActivityContext).create()
+            val alertDialog = AlertDialog.Builder(zMainActivity!!).create()
             alertDialog.setTitle("")
             alertDialog.setMessage(text)
-            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, vok,
-                    DialogInterface.OnClickListener { dialog, which ->
-                        dialog.dismiss()
-                    })
+            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, vok) { dialog:DialogInterface, which:Int ->
+                pressed?.invoke(Result.ok)
+            }
+            if (vcancel != "") {
+                alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, vcancel) { dialog: DialogInterface, which: Int ->
+                    pressed?.invoke(Result.cancel)
+                }
+            }
+            if (other != "") {
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, other) { dialog: DialogInterface, which: Int ->
+                    pressed?.invoke(Result.other)
+                }
+            }
             alertDialog.show()
-
         }
 
         fun GetText(title: String, content: String = "", placeholder: String = "", ok: String = "", cancel: String = "", other: String? = null, subText: String = "", keyboardInfo: ZKeyboardInfo? = null, done: (text: String, result: Result) -> Unit) {

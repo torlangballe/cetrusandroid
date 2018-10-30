@@ -8,12 +8,19 @@ package com.github.torlangballe.cetrusandroid
 
 import android.app.Activity
 import android.content.Context
-import android.os.StrictMode
-
+import android.content.pm.ActivityInfo
+import android.hardware.SensorManager
+import android.view.OrientationEventListener
+import android.view.Surface
+import android.view.WindowManager
+import android.widget.Toast
+import android.R.attr.orientation
+import android.content.res.Configuration
 
 
 var zMainActivityContext: Context? = null
 var zMainActivity: Activity? = null
+var lastOrientation = -1
 
 open class ZApp {
     companion object {
@@ -28,9 +35,35 @@ open class ZApp {
                 return Triple(s, 0f, 0)
             }
 
-        fun SetupActivity(activity:Activity) {
+        fun SetupActivity(activity:Activity, first:Boolean) {
             zMainActivity = activity
             zMainActivityContext = activity.applicationContext
+
+            if (!first) {
+                zHandleOrientationChanged()
+            }
+/*
+            val orientationEventListener = object : OrientationEventListener(activity.applicationContext, SensorManager.SENSOR_DELAY_NORMAL) {
+                override fun onOrientationChanged(orientation: Int) {
+                    val winManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager?
+                    if (orientation != lastOrientation) {
+                        val p = when(orientation) {
+                            90 -> Pair(ZAlignment.Right, ZScreenLayout.landscapeLeft)
+                            270 -> Pair(ZAlignment.Left, ZScreenLayout.landscapeRight)
+                            180 -> Pair(ZAlignment.Bottom, ZScreenLayout.portraitUpsideDown)
+                            else -> Pair(ZAlignment.Top, ZScreenLayout.portrait)
+                        }
+                        ZScreen.orientation = p.second
+                        zHandleRotation(p.first, orientation)
+                    }
+                    lastOrientation = orientation
+                }
+            }
+
+            if (orientationEventListener.canDetectOrientation()) {
+                orientationEventListener.enable()
+            }
+*/
 //            val policy = StrictMode.ThreadPolicy.Builder().permitAll().build() // without this host resolving fails https://stackoverflow.com/questions/22395417/error-strictmodeandroidblockguardpolicy-onnetwork
 //            StrictMode.setThreadPolicy(policy)
         }
@@ -69,7 +102,7 @@ open class ZApp {
 
     open fun HandleAppNotification(notification: ZNotification, action: String) {}
 
-    open fun HandlePushNotificationWithDictionary(dict: Map<String, ZAnyObject>, fromStartup: Boolean, whileActive: Boolean) {}
+    open fun HandlePushNotificationWithDictionary(dict: MutableMap<String, ZAnyObject>, fromStartup: Boolean, whileActive: Boolean) {}
 
     open fun HandleLocationRegionCross(regionId: String, enter: Boolean, fromAdd: Boolean) {}
 
@@ -91,7 +124,7 @@ open class ZApp {
 
     open fun HandleActivated(activated: Boolean) {}
 
-    open fun HandleOpenedFiles(files: List<ZFileUrl>, modifiers: Int) {}
+    open fun HandleOpenedFiles(files: MutableList<ZFileUrl>, modifiers: Int) {}
 
     fun ShowDebugText(str: String) {
         ZDebug.Print(str)
