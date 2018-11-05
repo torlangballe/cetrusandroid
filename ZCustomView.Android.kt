@@ -88,13 +88,17 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
     override fun onDown(e: MotionEvent): Boolean {
         return handleTouch(this, e, touchInfo)
     }
-    override fun onShowPress(e: MotionEvent) { return }
+    override fun onShowPress(e: MotionEvent) {
+        return
+    }
     override fun onSingleTapUp(e: MotionEvent): Boolean {
         return handleTouch(this, e, touchInfo)
     }
     override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean { return true }
 
     override fun onLongPress(e: MotionEvent) {
+        isHighlighted = false
+        Expose()
         handleGesture(this, ZGestureType.longpress, touchInfo, e, null, ZPos(0.0, 0.0), 1)
     }
 
@@ -107,6 +111,8 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
     }
     override fun onDoubleTap(e: MotionEvent): Boolean { return true }
     override fun onDoubleTapEvent(e: MotionEvent): Boolean {
+        isHighlighted = false
+        Expose()
         return handleGesture(this, ZGestureType.tap, touchInfo, e, null, ZPos(0.0, 0.0),2)
     }
 

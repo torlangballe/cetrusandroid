@@ -329,9 +329,6 @@ fun handleTouch(view: ZView, event: MotionEvent, info: ZTouchInfo): Boolean {
         return true
     }
     if (event.action == MotionEvent.ACTION_UP) {
-//            if (!Thread.isMainThread) {
-//                return
-//            }
         view.isHighlighted = false
         if (info.tapTarget != null || info.handlePressedInPosFunc != null) {
             val inside = view.LocalRect.Contains(pos)

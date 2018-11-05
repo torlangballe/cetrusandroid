@@ -12,7 +12,6 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import java.util.*
-
 import java.util.concurrent.CountDownLatch
 
 open class ZTimerBase : Closeable {
@@ -43,7 +42,7 @@ class ZRepeater: ZTimerBase() {
         androidTimer = Timer()
         androidTimer!!.schedule(object : TimerTask() {
             override fun run() {
-                ZMainQue.sync() {
+                zMainActivity!!.runOnUiThread {
                     if (!done()) {
                         Stop()
                     }
@@ -124,7 +123,6 @@ class ZDispatchQueue(threadName: String) : Thread() {
         } catch (e: Exception) {
             System.out.print(e)
         }
-
     }
 
     @JvmOverloads fun postRunnable(delay: Long = 0, runnable: Runnable) {
@@ -162,10 +160,10 @@ class ZDispatchQueue(threadName: String) : Thread() {
         if (name == "@main") {
             if (delay != 0.0) {
                 postRunnable((delay * 1000).toLong(), Runnable {
-                    zMainActivity!!.runOnUiThread(Runnable { f() })
+                    zMainActivity!!.runOnUiThread { f() }
                 })
             } else {
-                zMainActivity!!.runOnUiThread(Runnable { f() })
+                zMainActivity!!.runOnUiThread { f() }
             }
         } else {
             postRunnable((delay * 1000).toLong(), Runnable { f() })

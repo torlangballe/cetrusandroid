@@ -26,6 +26,7 @@ interface ZTableViewDelegate {
     fun TableViewGetRowCount() : Int { return 0 }
     fun TableViewGetHeightOfItem(index: ZTableIndex) : Double { return 10.0 }
     fun TableViewSetupCell(cellSize: ZSize, index: ZTableIndex) : ZCustomView? { return null }
+    fun UpdateRow(index: Int) { }
     fun HandleRowSelected(index: ZTableIndex) { }
     fun GetAccessibilityForCell(index: ZTableIndex, prefix: String) : List<ZAccessibilty> { return listOf<ZAccessibilty>() }
 }
@@ -70,23 +71,11 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-//!!        margins = ZSize(0, 0) // hack to remove margins on android
         if (first && owner != null) {
             ladapter = listAdapter(zMainActivityContext!!, owner!!, this)
             adapter = ladapter
         }
-
-        setMeasuredDimension(widthMeasureSpec, heightMeasureSpec)
         if (first) {
-            if (margins.h != 0.0) {
-                val viewHeader = LinearLayout(context)
-                viewHeader.orientation = LinearLayout.HORIZONTAL
-                val lp = AbsListView.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, (margins.h * ZScreen.Scale).toInt())
-                viewHeader.layoutParams = lp
-                this.addHeaderView(viewHeader, null, false)
-                this.addFooterView(viewHeader, null, false)
-            }
-            //    allowsSelection = true // selectable
             if (selectionIndex.row != -1) {
                 Select(selectionIndex.row)
             }
@@ -95,14 +84,15 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
             }
             first = false
         }
+        val w = ZMath.Ceil(MeasureSpec.getSize(widthMeasureSpec).toDouble() * ZScreen.Scale).toInt()
+        val h = ZMath.Ceil(MeasureSpec.getSize(heightMeasureSpec).toDouble() * ZScreen.Scale).toInt()
+
+        setMeasuredDimension(w, h)
     }
 
     override fun onLayout(p0: Boolean, p1: Int, p2: Int, p3: Int, p4: Int) {
         super.onLayout(p0, p1, p2, p3, p4)
-//        val sin = ZSize((p3 - p1).toDouble(), (p4 - p2).toDouble())
-//        val s = CalculateSize(sin)
     }
-
 
     override fun onDraw(canvas: Canvas?) {
         if (first && owner != null) {
@@ -136,26 +126,30 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
         invalidateViews()
     }
 
+    fun updateRow(index:Int) {
+        owner!!.UpdateRow(index)
+        val v = GetRowViewFromIndex(index)
+        if (v != null) {
+            v.View().invalidate()
+            val vg = v.View() as ViewGroup
+            if (vg!!.childCount > 0) {
+                vg!!.getChildAt(0).invalidate()
+            }
+        }
+    }
+
     fun ScrollToMakeRowVisible(row: Int, animated: Boolean = true) {
         if (row < 0 || row>= getCount()) {
             return
         }
-
-        val first = getFirstVisiblePosition()
-        val last = getLastVisiblePosition()
-
-        if (row < first) {
-            setSelection(row)
-            return
-        }
-
-        if (row >= last) {
-            setSelection(1 + row - (last - first))
-            return
-        }
+        smoothScrollToPosition(row)
     }
 
     fun ReloadData(row: Int? = null, animate: Boolean = false) {
+        if (row != null) {
+            updateRow(row!!)
+            return
+        }
         ladapter = listAdapter(zMainActivityContext!!, owner!!, this)
         adapter = ladapter
 
@@ -176,40 +170,27 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
         ZNOTIMPLEMENTED()
     }
 
-    /*
-    private fun getZViewChild(v: UIView) : ZView? {
-        for (c in v.subviews) {
-            val z = c as? ZView
-            if (z != null) {
-                return z
-            }
-        }
-        for (c in v.subviews) {
-            val z = getZViewChild(c)
-            if (z != null) {
-                return z
-            }
-        }
-        return null
-    }
-    */
-
-
     fun GetRowViewFromIndex(index: Int) : ZView? {
         var firstListItemPosition = getFirstVisiblePosition()
         var lastListItemPosition = firstListItemPosition + getChildCount() - 1
 
         val childIndex = index - firstListItemPosition
-        if (margins.h != 0.0) {
-            firstListItemPosition++
-            lastListItemPosition--
-        }
         if (index < firstListItemPosition || index > lastListItemPosition ) {
             val l = ladapter!!
-            val v = l.getView(index, null, this)
+            var v = l.getView(index, null, this)
+            if (margins.h > 0.0) {
+                val vc = v as ViewGroup
+                v = vc.getChildAt(0)
+            }
             return v as ZView
         }
         val v = getChildAt(childIndex)
+        if (!margins.IsNull() || spacing != 0.0) {
+            val vg = v as ViewGroup
+            if (vg != null) {
+                return vg.getChildAt(0) as ZView
+            }
+        }
         return v as ZView
     }
 
@@ -263,6 +244,13 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
 
 }
 
+//class OuterRow : ZCustomView("list.row.container") {
+//    override fun DrawInRect(rect: ZRect, canvas: ZCanvas) {
+//        super.DrawInRect(rect, canvas)
+//        getChildAt(0).invalidate()
+//    }
+//}
+//
 internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, val table: ZTableView) : BaseAdapter() {
     override fun getCount(): Int {
         val n = owner.TableViewGetRowCount()
@@ -278,9 +266,8 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        System.out.println("------ get view")
         val vi: View? = convertView
-        if (vi == null) {
+//        if (true) { //vi == null) {
             val index = ZTableIndex(position)
             val p = parent as? ZTableView
             var size = ZSize()
@@ -289,11 +276,20 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
             } else {
                 size.w = p.LocalRect.size.w
             }
+            if (size.w == 0.0) {
+                size.w = 100.0
+            }
             size.h = owner.TableViewGetHeightOfItem(index)
+            var ov = owner.TableViewSetupCell(cellSize = size - ZSize(table.margins.w * 2.0, 0.0), index = index)
             var r = ZRect(size = size)
-            var ov = owner.TableViewSetupCell(cellSize = size - ZSize(0.0, table.spacing), index = index)
             var outView = ov
             if (!table.margins.IsNull() || table.spacing != 0.0) {
+                if (table.margins.h != 0.0 && (position == 0 || position == owner.TableViewGetRowCount() - 1)) {
+                    size.h += table.margins.h
+                }
+                if (position != owner.TableViewGetRowCount() - 1) {
+                    size.h += table.spacing
+                }
                 val container = ZCustomView("list.row.container")
                 zLayoutViewAndScale(container, r)
                 container.minSize = r.size
@@ -301,17 +297,22 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
                 outView = container
             }
             val or = r.Expanded(ZSize(-table.margins.w, 0.0))
+            if (position == 0) {
+                or.SetMinY(or.Min.y + table.margins.h)
+            }
+            if (position == owner.TableViewGetRowCount() - 1) {
+                or.SetMaxY(or.Max.y - table.margins.h)
+            }
             or.size.h -= table.spacing
             zLayoutViewAndScale(ov!!, or)
-
             val cv = ov as? ZContainerView
             if (cv != null) {
                 cv.ArrangeChildren()
             }
-            ov.minSize = r.size
+            ov.minSize = or.size
 
             return outView!!
-        }
-        return vi
+//        }
+//        return vi
     }
 }

@@ -14,6 +14,10 @@ import android.os.Build
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import android.util.TypedValue
+import android.content.Context.WINDOW_SERVICE
+import android.support.v4.content.ContextCompat.getSystemService
+
+
 
 private fun getDefaultDisplayMetrics() : DisplayMetrics {
     return zMainActivityContext!!.getResources().getDisplayMetrics()
@@ -114,6 +118,11 @@ class ZScreen {
             get() {
                 ZNOTIMPLEMENTED()
                 return false
+            }
+
+        val UserFontScale : Double
+            get() {
+                return zMainActivity!!.getResources().getConfiguration().fontScale.toDouble()
             }
 
         fun ShowNetworkActivityIndicator(show: Boolean) {

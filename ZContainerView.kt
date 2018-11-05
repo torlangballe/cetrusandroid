@@ -23,7 +23,7 @@ open class ZContainerView: ZCustomView {
     var cells = mutableListOf<ZContainerCell>()
     var margin = ZRect()
     var liveArrange = false
-    var portraitOnly = false
+    var portraitOnly = true
 
     constructor(name: String = "ZContainerView") // required
         : super(name = name) {
@@ -68,9 +68,6 @@ open class ZContainerView: ZCustomView {
         var r = ZScreen.Main
         if (useableArea) {
             r = ZScreen.MainUsableRect
-        }
-        if (ZScreen.orientation == ZScreenLayout.landscapeRight || ZScreen.orientation == ZScreenLayout.landscapeLeft) {
-//            r.size.Swap()
         }
         minSize = r.size
         Rect = r

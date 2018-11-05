@@ -10,6 +10,9 @@ import android.graphics.Paint
 import android.text.StaticLayout
 import android.text.TextPaint
 import kotlin.math.ceil
+import android.text.Layout
+
+
 
 enum class ZTextDrawType { fill, stroke, clip }
 
@@ -67,7 +70,10 @@ data class ZTextDraw(
         val textPaint = TextPaint()
         textPaint.typeface = font.typeface
         textPaint.isAntiAlias = true
-        textPaint.textSize  = ZMath.Ceil(font.size * ZScreen.Scale).toFloat()
+
+        val fontScale = zMainActivity!!.getResources().getConfiguration().fontScale
+
+        textPaint.textSize  = ZMath.Ceil(font.size * ZScreen.Scale * ZScreen.UserFontScale).toFloat()
         textPaint.color = color.color.toArgb()
         when (this.type) {
             ZTextDrawType.stroke -> {
@@ -116,7 +122,8 @@ data class ZTextDraw(
 
         size /= ZScreen.Scale
         if (maxLines > 1) {
-            size.h = (height).toDouble() * maxLines.toDouble() / ZScreen.Scale
+            val l = ZMath.Ceil(ZScreen.UserFontScale * maxLines.toDouble())
+            size.h = (height).toDouble() * l / ZScreen.Scale
         }
         return rect.Align(size, align = alignment)
     }
@@ -152,18 +159,46 @@ data class ZTextDraw(
             } else {
                 r.Max.y = ra.pos.y - (font.lineHeight).toDouble() * 0.3
             }
-            p = ZPos(r.Min.x, r.Min.y + font.size * 1.1)
+            r.Min.y += 1.0
+//            p = ZPos(r.Min.x, r.Min.y + font.size * 1.1)
+//            if (alignment and ZAlignment.Right) {
+//                p.x = r.Max.x
+//            } else if (alignment and ZAlignment.HorCenter) {
+//                p.x = r.Center.x
+//            }
+
+            val tPaint = TextPaint(canvas.paint)
+            tPaint.color = color.color.toArgb()
+            tPaint.isAntiAlias = true
+            tPaint.setTextSize(font.size.toFloat())
+            tPaint.setTypeface(font.typeface)
+
+            val builder = StaticLayout.Builder.obtain(text, 0, text.length, tPaint, ZMath.Ceil(r.size.w).toInt())
+
+            var a = Layout.Alignment.ALIGN_NORMAL
             if (alignment and ZAlignment.Right) {
-                p.x = r.Max.x
-            } else if (alignment and ZAlignment.HorCenter) {
-                p.x = r.Center.x
+                a = Layout.Alignment.ALIGN_OPPOSITE
             }
+            if (alignment and ZAlignment.HorCenter) {
+                a = Layout.Alignment.ALIGN_CENTER
+            }
+            builder.setAlignment(a)
+            val j = when(wrap) {
+                ZTextWrapType.word -> Layout.JUSTIFICATION_MODE_INTER_WORD
+                else -> Layout.JUSTIFICATION_MODE_NONE
+            }
+            builder.setJustificationMode(j)
+//            builder.setLineSpacing(spacingMultiplier, spacingAddition)
+//            builder.setIncludePad(includePadding)
+//            builder.setMaxLines(5)
+            canvas.PushState()
+            canvas.context.translate(r.Min.x.toFloat(), r.Min.y.toFloat())
+            builder.build().draw(canvas.context)
+            canvas.PopState()
         } else {
             p = pos!!
+            canvas.DrawText(text, font, color, p, alignment)
         }
-        if ((alignment and ZAlignment.HorShrink)) {//         ScaleFontToFit()
-        }
-        canvas.DrawText(text, font, color, p, alignment)
         return rect.Align(ts, align = alignment)
     }
 

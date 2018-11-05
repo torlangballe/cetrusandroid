@@ -24,8 +24,13 @@ open class ZStackView: ZContainerView {
         }
         return tot
     }
-
     override fun CalculateSize(total: ZSize) : ZSize {
+        var s = nettoCalculateSize(total)
+        s.Maximize(minSize)
+        return s
+    }
+
+    fun nettoCalculateSize(total: ZSize) : ZSize {
         // can force size calc without needed result
         var s = ZSize(0, 0)
         for (c1 in cells) {
@@ -51,7 +56,6 @@ open class ZStackView: ZContainerView {
             s[vertical] -= space
         }
         s[!vertical] = maxOf(s[!vertical], minSize[!vertical])
-        s.Maximize(minSize)
 
         return s
     }
@@ -115,7 +119,7 @@ open class ZStackView: ZContainerView {
             }
         }
         val cn = r.Center[vertical]
-        var cs = CalculateSize(r.size)[vertical]
+        var cs = nettoCalculateSize(r.size)[vertical]
         cs += margin.size[vertical]
         // subtracts margin, since we've already indented for that
         val diff = r.size[vertical] - cs
@@ -139,9 +143,9 @@ open class ZStackView: ZContainerView {
             if (!c4.collapsed && !c4.free) {
                 if ((c4.alignment and (amore or aless))) {
                     var a = c4.alignment
-                    if (i != lastNonFreeIndex) {
-                        a = a.Subtracted(ZAlignment.Expand[vertical])
-                    }
+//                    if (i != lastNonFreeIndex) {
+//                        a = a.Subtracted(ZAlignment.Expand[vertical])
+//                    }
                     val vr = handleAlign(size = sizes[c4.view!!]!!, inRect = r, a = a, cell = c4)
                     //                ZDebug.Print("alignx:", (c4.view as! ZView).objectName, vr)
                     if (onlyChild == null || onlyChild!!.View() == c4.view) {

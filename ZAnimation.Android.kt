@@ -1,5 +1,8 @@
 package com.github.torlangballe.cetrusandroid
 
+import android.view.View
+import android.view.ViewGroup
+
 //
 //  ZAnimation.swift
 //
@@ -73,4 +76,39 @@ class ZAnimation {
 }
 
 private fun animateView(view: UIView, from: Double, to: Double, duration: Double, type: String, repeatCount: Double = Double.MAX_VALUE, autoreverses: Boolean = true) {
+}
+
+fun zTransitionViews(view: ZView, oldView: ZView?, duration: Double, transition: ZTransitionType, done: (() -> Unit)?) {
+    if (transition != ZTransitionType.fromLeft && transition != ZTransitionType.fromRight && transition != ZTransitionType.fade) {
+        ZNOTIMPLEMENTED()
+    }
+    var vg: ViewGroup? = null
+    if (oldView != null) {
+        vg = oldView.View() as ViewGroup
+        if (vg != null) {
+            vg.addView(view.View())
+        }
+    }
+
+    var w = (view.Rect.size.w * ZScreen.Scale).toFloat()
+    var a = 1f
+    if (transition == ZTransitionType.fromLeft ) {
+        w *= -1f
+    } else if (transition == ZTransitionType.fade) {
+        w = 0f
+        a = 0f
+    }
+    view.View().apply {
+        translationX = w
+        visibility = View.VISIBLE
+        alpha = a
+        animate()
+                .alpha(1f)
+                .translationX(0f)
+                .setDuration((duration * 1000.0).toLong())
+                .withEndAction {
+                    vg?.removeView(view.View())
+                    done?.invoke()
+                }
+    }
 }

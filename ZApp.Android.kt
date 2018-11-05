@@ -16,6 +16,11 @@ import android.view.WindowManager
 import android.widget.Toast
 import android.R.attr.orientation
 import android.content.res.Configuration
+import android.content.Context.WINDOW_SERVICE
+import android.support.v4.content.ContextCompat.getSystemService
+import android.util.DisplayMetrics
+
+
 
 
 var zMainActivityContext: Context? = null
@@ -42,30 +47,6 @@ open class ZApp {
             if (!first) {
                 zHandleOrientationChanged()
             }
-/*
-            val orientationEventListener = object : OrientationEventListener(activity.applicationContext, SensorManager.SENSOR_DELAY_NORMAL) {
-                override fun onOrientationChanged(orientation: Int) {
-                    val winManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager?
-                    if (orientation != lastOrientation) {
-                        val p = when(orientation) {
-                            90 -> Pair(ZAlignment.Right, ZScreenLayout.landscapeLeft)
-                            270 -> Pair(ZAlignment.Left, ZScreenLayout.landscapeRight)
-                            180 -> Pair(ZAlignment.Bottom, ZScreenLayout.portraitUpsideDown)
-                            else -> Pair(ZAlignment.Top, ZScreenLayout.portrait)
-                        }
-                        ZScreen.orientation = p.second
-                        zHandleRotation(p.first, orientation)
-                    }
-                    lastOrientation = orientation
-                }
-            }
-
-            if (orientationEventListener.canDetectOrientation()) {
-                orientationEventListener.enable()
-            }
-*/
-//            val policy = StrictMode.ThreadPolicy.Builder().permitAll().build() // without this host resolving fails https://stackoverflow.com/questions/22395417/error-strictmodeandroidblockguardpolicy-onnetwork
-//            StrictMode.setThreadPolicy(policy)
         }
     }
 
