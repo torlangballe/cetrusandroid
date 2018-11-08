@@ -61,7 +61,7 @@ fun ZTime.Get24Hour(hour: Int, am: Boolean) : Int {
 
 fun ZTime.GetNiceString(locale: String = ZLocaleEngUsPosix, timezone: ZTimeZone? = null) : String {
     if (IsToday()) {
-        return ZWords.GetToday() + " " + GetString(format = "HH:mm", locale = locale, timezone = timezone)
+        return GetString(format = "HH:mm", locale = locale, timezone = timezone) + " " + ZWords.GetToday()
     }
     return GetString(format = ZTimeNiceFormat, locale = locale, timezone = timezone)
 }
@@ -113,7 +113,7 @@ val ZTimeIsoFormatWithZone = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
 val ZTimeIsoFormatWithMSecsWithZone = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
 val ZTimeIsoFormatCompactWithZone = "yyyyMMdd'T'HHmmssZZZZZ"
 val ZTimeCompactFormat = "yyyy-MM-dd' 'HH:mm:ss"
-val ZTimeNiceFormat = "yy-MMM-dd' 'HH:mm"
+val ZTimeNiceFormat = "HH:mm' 'dd-MMM-yyyy"
 val ZTimeHTTPHeaderDateFormat = "EEEE, dd LLL yyyy HH:mm:ss zzz"
 val ZTimeMinute = 60.0
 val ZTimeHour = 3600.0

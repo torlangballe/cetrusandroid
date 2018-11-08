@@ -77,6 +77,7 @@ private fun namedImage(name:String) : Bitmap? {
 class ZImage(var bitmap:Bitmap? = null) {
     var ninepatch:NinePatch? = null
     var scale:Float = 1f
+    var tint:ZColor = ZColor()
 
     constructor(named:String) :
         this(namedImage(named)) {
@@ -124,15 +125,14 @@ class ZImage(var bitmap:Bitmap? = null) {
     val Size: ZSize
         get() {
             if (ninepatch != null) {
-                val s = ZSize(ninepatch!!.width.toDouble(), ninepatch!!.height.toDouble())
-                return s
+                return ZSize(ninepatch!!.width.toDouble(), ninepatch!!.height.toDouble()) / scale.toDouble()
             }
             if (bitmap != null) {
                 return ZSize(bitmap!!.width, bitmap!!.height) / scale.toDouble()
             }
             return ZSize(0, 0)
         }
-
+/*
     fun TintedWithColor(color: ZColor) : ZImage {
         val s = Size * scale.toDouble()
         val conf = Bitmap.Config.ARGB_8888 // see other conf types
@@ -154,15 +154,24 @@ class ZImage(var bitmap:Bitmap? = null) {
         val i = ZImage()
         i.bitmap = Bitmap.createScaledBitmap(bmp, bmp.width, bmp.height, false)
         i.scale = scale
-
         if (ninepatch != null) {
-            return i.Make9PatchImage(ZRect(6.0, 13.0, 6.0, 13.0))
+            return i.Make9PatchImage(ZRect(6.0, 13.0, 6.0, 13.0)) // hardcoded!!!
         }
+        return i
+    }
+*/
+
+    fun TintedWithColor(color: ZColor) : ZImage {
+        val i = ZImage()
+        i.bitmap = bitmap
+        i.ninepatch = ninepatch
+        i.scale = scale
+        i.tint = color
 
         return i
     }
 
-    fun GetScaledInSize(size: ZSize, proportional: Boolean = true) : ZImage? {
+        fun GetScaledInSize(size: ZSize, proportional: Boolean = true) : ZImage? {
         ZNOTIMPLEMENTED()
         return null
     }

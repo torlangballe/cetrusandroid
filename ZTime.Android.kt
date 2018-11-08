@@ -6,9 +6,12 @@
 
 package com.github.torlangballe.cetrusandroid
 
-import java.time.Instant
-import java.time.ZonedDateTime
-import java.time.ZoneId
+import android.text.format.DateFormat
+import android.text.format.DateUtils
+import java.text.SimpleDateFormat
+import java.time.*
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 //import java.time.format.DateTimeFormatter
 
@@ -46,7 +49,7 @@ class ZTime (val instant: Instant = Instant.now()) {
         this(fromFormat(format, dateString, locale, timezone)) {
     }
 
-    fun GetGregorianTimeParts(useAm: Boolean = false) : ZGregorianParts {
+    fun GetGregorianTimeParts(useAm: Boolean = false, timezone:ZTimeZone? = null) : ZGregorianParts {
         var g = ZGregorianParts()
         // not implemented
         return g
@@ -54,7 +57,37 @@ class ZTime (val instant: Instant = Instant.now()) {
 
     fun GetGregorianDateParts(timezone: ZTimeZone? = null) : ZGregorianParts {
         var g = ZGregorianParts()
-        // not implemented
+
+        var tid = ZoneId.of(TimeZone.getDefault().id)
+        if (timezone != null) {
+            tid = timezone!!.timezone.toZoneId()
+        }
+        val date = LocalDateTime.ofInstant(instant, tid)
+        g.day = date.dayOfMonth
+        g.month = when(date.month) {
+            Month.JANUARY -> ZMonth.jan
+            Month.FEBRUARY -> ZMonth.feb
+            Month.MARCH -> ZMonth.mar
+            Month.APRIL -> ZMonth.apr
+            Month.MAY -> ZMonth.may
+            Month.JUNE-> ZMonth.jun
+            Month.JULY-> ZMonth.jul
+            Month.AUGUST -> ZMonth.aug
+            Month.SEPTEMBER -> ZMonth.sep
+            Month.OCTOBER -> ZMonth.oct
+            Month.NOVEMBER -> ZMonth.nov
+            Month.DECEMBER -> ZMonth.dec
+        }
+        g.year = date.year
+        g.weekday = when(date.dayOfWeek) {
+            DayOfWeek.MONDAY-> ZWeekday.mon
+            DayOfWeek.TUESDAY -> ZWeekday.tue
+            DayOfWeek.WEDNESDAY -> ZWeekday.wed
+            DayOfWeek.THURSDAY -> ZWeekday.thu
+            DayOfWeek.FRIDAY -> ZWeekday.fri
+            DayOfWeek.SATURDAY-> ZWeekday.sat
+            DayOfWeek.SUNDAY -> ZWeekday.sun
+        }
         return g
     }
 
@@ -71,13 +104,20 @@ class ZTime (val instant: Instant = Instant.now()) {
     }
 
     fun IsToday() : Boolean {
-        // not implemented
-        return false
+        return DateUtils.isToday(instant.toEpochMilli())
     }
 
     fun GetString(format: String = ZTimeIsoFormat, locale: String = ZLocaleEngUsPosix, timezone: ZTimeZone? = null) : String {
-        // not implemented
-        return ""
+        var loca:Locale? = null
+        var tid = ZoneId.of(TimeZone.getDefault().id)
+        if (timezone != null) {
+            tid = timezone!!.timezone.toZoneId()
+        }
+        val date = LocalDateTime.ofInstant(instant, tid)
+        val (lang, ccode) = ZLocale.GetLangCodeAndCountryFromLocaleId(locale)
+        loca = Locale(lang, ccode)
+        val df = DateTimeFormatter.ofPattern(format, loca)
+        return df.format(date)
     }
 
     operator fun plus(add:Double) : ZTime {

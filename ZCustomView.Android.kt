@@ -6,15 +6,10 @@
 package com.github.torlangballe.cetrusandroid
 
 import android.graphics.Canvas
-import android.media.MediaPlayer
 import android.view.GestureDetector
 import android.view.View
 import android.view.ViewGroup
 import android.view.MotionEvent
-import android.widget.Toast
-import tv.bridgetech.pocketprobe.MainActivity
-import android.view.GestureDetector.OnDoubleTapListener
-
 
 
 interface ZCustomViewDelegate {
@@ -111,9 +106,12 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
     }
     override fun onDoubleTap(e: MotionEvent): Boolean { return true }
     override fun onDoubleTapEvent(e: MotionEvent): Boolean {
-        isHighlighted = false
-        Expose()
-        return handleGesture(this, ZGestureType.tap, touchInfo, e, null, ZPos(0.0, 0.0),2)
+        if (e.action == MotionEvent.ACTION_UP) {
+            isHighlighted = false
+            Expose()
+            return handleGesture(this, ZGestureType.tap, touchInfo, e, null, ZPos(0.0, 0.0), 2)
+        }
+        return false
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

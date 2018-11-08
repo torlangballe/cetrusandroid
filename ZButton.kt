@@ -16,6 +16,8 @@ class ZButton: ZShapeView {
         text.font = ZFont.Nice(22.0, style = ZFont.Style.bold)
         text.color = titleColor
         fillBox = true
+//        fillBox = false
+//        imageAlign = ZAlignment.Center or ZAlignment.HorExpand or ZAlignment.NonProp
         imageMargin = ZSize(0.0, 5.0)
     }
 

@@ -12,7 +12,7 @@ fun ZDebug.Companion.Print(vararg items: Any?, separator: String = " ", terminat
     var str = ""
     if (lastStampTime.Since() > 3.0) {
         lastStampTime = ZTime.Now()
-        str = lastStampTime.GetString(format = "============= yy-MM-dd' 'HH:mm:ssZZ =============\n")
+        str = lastStampTime.GetString(format = "============= yy-MM-dd' 'HH:mm:ss =============\n")
     }
     for ((i, item) in items.withIndex()) {
         if (i != 0) {

@@ -2,6 +2,10 @@ package com.github.torlangballe.cetrusandroid
 
 import android.view.View
 import android.view.ViewGroup
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
+import android.support.v4.view.animation.FastOutSlowInInterpolator
+
 
 //
 //  ZAnimation.swift
@@ -23,8 +27,7 @@ class ZAnimation {
         }
 
         fun RemoveAllFromView(view: UIView) {
-            // TODO: ZAnimation.RemoveAllFromView
-            ZDebug.Print("ZAnimation.RemoveAllFromView not made yet")
+            view.clearAnimation()
         }
 
         fun ViewHasAnimations(view: UIView) : Boolean {
@@ -33,8 +36,14 @@ class ZAnimation {
         }
 
         fun PulseView(view: UIView, scale: Double, duration: Double, fromScale: Double = 1.0, repeatCount: Double = Double.MAX_VALUE) {
-            // TODO: ZAnimation.PulseView
-            ZDebug.Print("ZAnimation.PulseView not made yet")
+            val scaleDown = ObjectAnimator.ofPropertyValuesHolder(view,
+                    PropertyValuesHolder.ofFloat("scaleX", scale.toFloat()),
+                    PropertyValuesHolder.ofFloat("scaleY", scale.toFloat()))
+            scaleDown.duration = (duration * 1000.0).toLong()
+            scaleDown.repeatCount = ObjectAnimator.INFINITE
+            scaleDown.repeatMode = ObjectAnimator.REVERSE
+            scaleDown.setInterpolator(FastOutSlowInInterpolator())
+            scaleDown.start()
         }
 
         fun ScaleView(view: UIView, scaleTo: Double, duration: Double) {

@@ -8,9 +8,6 @@ package com.github.torlangballe.cetrusandroid
 
 import android.graphics.PorterDuff
 import android.widget.SeekBar
-import android.widget.Toast
-import tv.bridgetech.pocketprobe.MainActivity
-
 
 
 class ZSlider: SeekBar, ZView, ZControl {

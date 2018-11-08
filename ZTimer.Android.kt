@@ -95,6 +95,7 @@ class ZDispatchQueue(threadName: String) : Thread() {
 
     @Volatile
     private var handler: Handler? = null
+    private var waitLatch = CountDownLatch(1)
     private val syncLatch = CountDownLatch(1)
 
     init {
@@ -102,23 +103,23 @@ class ZDispatchQueue(threadName: String) : Thread() {
         start()
     }
 
-    private fun sendMessage(msg: Message, delay: Int) {
-        try {
-            syncLatch.await()
-            if (delay <= 0) {
-                handler!!.sendMessage(msg)
-            } else {
-                handler!!.sendMessageDelayed(msg, delay.toLong())
-            }
-        } catch (e: Exception) {
-            System.out.print(e)
-        }
-
-    }
-
+//    private fun sendMessage(msg: Message, delay: Int) {
+//        try {
+//            waitLatch.await()
+//            if (delay <= 0) {
+//                handler!!.sendMessage(msg)
+//            } else {
+//                handler!!.sendMessageDelayed(msg, delay.toLong())
+//            }
+//        } catch (e: Exception) {
+//            System.out.print(e)
+//        }
+//
+//    }
+//
     fun cancelRunnable(runnable: Runnable) {
         try {
-            syncLatch.await()
+            waitLatch.await()
             handler!!.removeCallbacks(runnable)
         } catch (e: Exception) {
             System.out.print(e)
@@ -127,7 +128,7 @@ class ZDispatchQueue(threadName: String) : Thread() {
 
     @JvmOverloads fun postRunnable(delay: Long = 0, runnable: Runnable) {
         try {
-            syncLatch.await()
+            waitLatch.await()
             if (delay <= 0) {
                 handler!!.post(runnable)
             } else {
@@ -141,7 +142,7 @@ class ZDispatchQueue(threadName: String) : Thread() {
 
     fun cleanupQueue() {
         try {
-            syncLatch.await()
+            waitLatch.await()
             handler!!.removeCallbacksAndMessages(null)
         } catch (e: Exception) {
             System.out.print(e)
@@ -151,7 +152,7 @@ class ZDispatchQueue(threadName: String) : Thread() {
     override fun run() {
         Looper.prepare()
         handler = Handler()
-        syncLatch.countDown()
+        waitLatch.countDown()
         Looper.loop()
     }
 
@@ -171,6 +172,11 @@ class ZDispatchQueue(threadName: String) : Thread() {
     }
 
     fun sync(delay:Double = 0.0, f:()->Unit) {
-        async(delay, f)
+        waitLatch = CountDownLatch(1)
+        async(delay) {
+            f()
+            waitLatch.countDown()
+        }
+        waitLatch.await()
     }
 }

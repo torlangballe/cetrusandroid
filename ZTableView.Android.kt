@@ -9,16 +9,9 @@ package com.github.torlangballe.cetrusandroid
 import android.content.Context
 import android.widget.ListView
 import android.graphics.*
-import android.view.Gravity
 import android.view.ViewGroup
 import android.view.View
 import android.widget.*
-import android.widget.LinearLayout
-import android.widget.RelativeLayout
-
-
-
-
 
 // TODO: RecyclerView is new modern performant thing to maybe use later?
 
@@ -267,7 +260,7 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val vi: View? = convertView
-//        if (true) { //vi == null) {
+//        if (true) { //vi == null) { // HACK FOR NOW
             val index = ZTableIndex(position)
             val p = parent as? ZTableView
             var size = ZSize()
@@ -302,8 +295,9 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
             }
             if (position == owner.TableViewGetRowCount() - 1) {
                 or.SetMaxY(or.Max.y - table.margins.h)
+            } else {
+                or.size.h -= table.spacing
             }
-            or.size.h -= table.spacing
             zLayoutViewAndScale(ov!!, or)
             val cv = ov as? ZContainerView
             if (cv != null) {
