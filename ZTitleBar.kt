@@ -16,14 +16,16 @@ class ZTitleBar: ZStackView {
         companion object : ZEnumCompanion<String, CloseButtons>(CloseButtons.values().associateBy(CloseButtons::rawValue))
     }
 
-    var closeButton: ZImageView
+    var closeButton: ZImageView? = null
     val notchInc = 16
     val title: ZLabel
     var sizeCalculated = false
     var closeHandler: ZViewHandler? = null
 
     constructor(text: String = "", closeType: CloseButtons = CloseButtons.cross, closeAlignX: ZAlignment = ZAlignment.Left) : super(name = "titlebar") {
-        closeButton = ZImageView(namedImage = closeType.rawValue + ".png")
+        if (closeType != CloseButtons.none) {
+            closeButton = ZImageView(namedImage = closeType.rawValue + ".png")
+        }
         title = ZLabel(text = text, maxWidth = ZScreen.Main.size.w, font = ZFont.Nice(25.0), align = ZAlignment.Left)
         title.Color = ZColor.White()
         title.adjustsFontSizeToFitWidth = true
@@ -36,10 +38,12 @@ class ZTitleBar: ZStackView {
         //        if ZScreen.HasNotch() {
         //            minSize.h += 88
         //        }
-        closeButton.AddTarget(this, forEventType = ZControlEventType.pressed)
-        closeButton.accessibilityLabel = ZWords.GetClose()
+        closeButton?.AddTarget(this, forEventType = ZControlEventType.pressed)
+        closeButton?.accessibilityLabel = ZWords.GetClose()
         AddTarget(this, forEventType = ZControlEventType.pressed)
-        Add(closeButton, align = closeAlignX or ZAlignment.Bottom)
+        if (closeButton != null) {
+            Add(closeButton!!, align = closeAlignX or ZAlignment.Bottom)
+        }
         Add(title, align = ZAlignment.HorCenter or ZAlignment.Bottom, marg = ZSize(0, 5))
         SetBackgroundColor(Color)
     }

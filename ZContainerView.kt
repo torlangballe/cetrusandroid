@@ -264,4 +264,14 @@ open class ZContainerView: ZCustomView {
 
     open fun HandleRotation() {
     }
+
+    open fun HandleBackButton() {
+        RangeChildren(subViews = true) { view: ZView ->
+            val t = view as? ZTitleBar
+            if (t != null && t!!.closeButton != null) {
+                t?.HandlePressed(t!!.closeButton!!, ZPos(0.0, 0.0))
+            }
+            true
+        }
+    }
 }

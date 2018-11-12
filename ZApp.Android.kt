@@ -15,13 +15,11 @@ import android.view.Surface
 import android.view.WindowManager
 import android.widget.Toast
 import android.R.attr.orientation
+import android.app.Application
 import android.content.res.Configuration
 import android.content.Context.WINDOW_SERVICE
 import android.support.v4.content.ContextCompat.getSystemService
 import android.util.DisplayMetrics
-
-
-
 
 var zMainActivityContext: Context? = null
 var zMainActivity: Activity? = null
@@ -123,6 +121,12 @@ open class ZApp {
             false
 }
 
+open class ZActivity: Activity() {
+    override fun onBackPressed() {
+        val view = ZGetCurrentyPresentedView()
+        view.HandleBackButton()
+    }
+}
 // var ZMainFunc:((args: List<String>)->Unit)? = null
 
 var mainZApp: ZApp? = null

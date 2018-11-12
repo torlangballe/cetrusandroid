@@ -15,7 +15,7 @@ data class Attributes(
         var lightContent: Boolean = true,
         var useableArea: Boolean = true,
         var portraitOnly:Boolean = false,
-        var view: ZView? = null
+        var view: ZContainerView? = null
 ) {}
 
 var stack = mutableListOf<Attributes>()
@@ -31,7 +31,7 @@ fun ZPresentView(view: ZView, duration: Double = 0.4, transition: ZTransitionTyp
         a.lightContent = lightContent
         a.useableArea = !makeFull
         a.portraitOnly = portraitOnly ?: vc.portraitOnly
-        a.view = view
+        a.view = vc
         stack.append(a)
         view.SetAsFullView(useableArea = !makeFull)
         view.ArrangeChildren()
@@ -56,10 +56,6 @@ private fun setContentView(view:ZView, a:Attributes, done: (() -> Unit)? = null)
     if (done != null) { // needs to be on callback after view presented or something
         done()
     }
-    val vc = view as ZContainerView
-    if (vc != null) {
-//        view.ArrangeChildren()
-    }
 }
 
 fun ZPopTopView(namedView: String = "", animated: Boolean = true, overrideDuration: Float = -1f, overrideTransition: ZTransitionType = ZTransitionType.none, done: (() -> Unit)? = null, changeOrientation:Boolean = true) {
@@ -75,10 +71,7 @@ fun ZPopTopView(namedView: String = "", animated: Boolean = true, overrideDurati
                     parent.removeView(p.view!!.View())
                 }
             }
-            val v = p.view as? ZCustomView
-            if (v != null) {
-                v.HandleClosing()
-            }
+            p.view!!.HandleClosing()
         }
     }
     if (stack.count() > 0) {
@@ -114,5 +107,9 @@ fun zHandleOrientationChanged() {
     if (cv != null) {
         cv.HandleRotation()
     }
+}
+
+fun ZGetCurrentyPresentedView() : ZContainerView {
+    return stack.last().view!!
 }
 

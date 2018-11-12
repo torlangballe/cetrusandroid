@@ -45,8 +45,7 @@ fun String.uppercased() : String {
 fun String.removedLast() : String {
     return removeRange(length - 1, length)
 }
-// s
-// pecial helper companion class that is inserted into enums with values, for fromRaw conversion:
+// special helper companion class that is inserted into enums with values, for fromRaw conversion:
 open class ZEnumCompanion<T, V>(private val valueMap: Map<T, V>) {
     fun rawValue(type: T) = valueMap[type]
 }

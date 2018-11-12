@@ -291,7 +291,6 @@ data class ZRect(
         var r = ZRect()
         r.pos = pos.copy()
         r.size = size.copy()
-
         return r
     }
 
