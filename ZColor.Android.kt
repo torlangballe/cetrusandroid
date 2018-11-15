@@ -7,6 +7,7 @@
 package com.github.torlangballe.cetrusandroid
 
 import android.graphics.Color
+import android.graphics.Color.argb
 
 class ZColor (
     var color: Color = Color(),

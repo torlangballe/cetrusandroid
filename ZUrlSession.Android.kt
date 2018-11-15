@@ -10,9 +10,11 @@ package com.github.torlangballe.cetrusandroid
 
 import java.io.BufferedInputStream
 import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.MalformedURLException
-import java.net.URL
+import java.net.*
+
+class ZIPAddress {
+    var address:InetAddress? = null
+}
 
 class ZUrlRequest {
     var url: URL? = null
@@ -79,23 +81,7 @@ data class ZUrlRequestReturnMessage(
         var code: Int? = null) {
 }
 
-/*
-private fun checkStatusCode(response: ZUrlResponse, check: Boolean, ref error:  ZError?) {
-    if (check) {
-        if (error == null) {
-            val code = response.StatusCode
-            if (code != null) {
-                if (code >= 300) {
-                    val str = "$code")
-                    error = ZNewError(str, code = code, domain = ZUrlErrorDomain)
-                }
-            }
-        }
-    }
-}
-*/
-
-class ZUrlSession {
+class ZInternet {
     // transactions are debugging list for listing all transactions
     companion object {
         fun Send(request: ZUrlRequest, onMain: Boolean = true, async: Boolean = true, sessionCount: Int = -1, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, data: ZData?, error: ZError?, sessionCount: Int) -> Unit) : ZURLSessionTask? {
@@ -146,10 +132,29 @@ class ZUrlSession {
             ZNOTIMPLEMENTED()
         }
 
-//        fun CheckError(data: ZJSONData) : Pair<ZError?, Int?> {
-//            ZNOTIMPLEMENTED()
-//            return Pair(null, null)
-//        }
+        fun ResolveAddress(address:String, got:(a:ZIPAddress )->Unit) {
+            var ip = ZIPAddress()
+            ip.address = InetAddress.getByName(address)
+            got(ip)
+        }
+
+        fun SendWithUDP(address:ZIPAddress, port:Int, data:ZData, done:(e:ZError?)->Unit) {
+            var ds: DatagramSocket? = null
+            try {
+                ds = DatagramSocket()
+                val dp: DatagramPacket
+                dp = DatagramPacket(data.data, data.length, address.address, port)
+                ds!!.setBroadcast(true)
+                ds!!.send(dp)
+            } catch (e: Exception) {
+                done(ZNewError(e.localizedMessage))
+            } finally {
+                if (ds != null) {
+                    ds!!.close()
+                }
+                done(null)
+            }
+        }
     }
 }
 

@@ -486,8 +486,8 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
                 col = ZColor(white = 0.0, a = 0.3)
             }
         }
-//        this.placeholder = placeholder
-//        this.attributedPlaceholder = NSAttributedString(string = placeholder, attributes = mutableMapOf<NSAttributedStringKey.foregroundColor, col.color>)
+        hint = placeholder
+        setHintTextColor(col.color.toArgb())
     }
 
 

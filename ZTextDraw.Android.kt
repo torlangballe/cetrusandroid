@@ -7,6 +7,8 @@
 package com.github.torlangballe.cetrusandroid
 
 import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.RectF
 import android.text.StaticLayout
 import android.text.TextPaint
 import kotlin.math.ceil
@@ -89,29 +91,37 @@ data class ZTextDraw(
 
     fun calculateSize() : ZSize {
         var textPaint = makeTextPaint()
-        val builder = StaticLayout.Builder.obtain (text, 0, text.length, textPaint, ZMath.Ceil(rect.size.w * ZScreen.Scale).toInt())
+        var w = ZMath.Ceil(rect.size.w * ZScreen.Scale).toInt()
+        if (w == 0) {
+            w = 99999
+        }
+        val builder = StaticLayout.Builder.obtain (text, 0, text.length, textPaint, w)
         val slayout = builder.build()
 
-        val width = textPaint.measureText(text)
-        val height = -textPaint.ascent() + textPaint.descent()
-
-        var size = ZSize(slayout.width.toDouble(), slayout.height.toDouble())
-
-        if (width < size.w) {
-            return ZSize(width, height)
+        var bounds = Rect()
+        textPaint.getTextBounds(text, 0, text.count(), bounds)
+//        val width = bounds.width().toDouble()
+//        val height = (-textPaint.ascent() + textPaint.descent())
+        var tw = 0.0
+        for (i in 0 .. slayout.lineCount - 1) {
+            tw = maxOf(tw, slayout.getLineWidth(i).toDouble())
         }
+        var size = ZSize(tw, slayout.height.toDouble())
+//        if (width < size.w) {
+//            return ZSize(width, height.toDouble())
+//        }
         return size
     }
 
     fun GetBounds(noWidth: Boolean = false) : ZRect {
         val textPaint = makeTextPaint()
         val height = font.lineHeight * ZScreen.Scale + textPaint.descent() // -textPaint.ascent() +
-        if (rect.IsNull) {
-            val width = textPaint.measureText(text)
-            var s = ZSize(width.toDouble(), height.toDouble())
-            s /= ZScreen.Scale
-            return ZRect(size = s)
-        }
+//        if (rect.IsNull) {
+//            val width = textPaint.measureText(text)
+//            var s = ZSize(width.toDouble(), height.toDouble())
+//            s /= ZScreen.Scale
+//            return ZRect(size = s)
+//        }
         var size =  calculateSize()
 
         // TODO: make
