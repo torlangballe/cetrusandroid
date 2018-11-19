@@ -7,6 +7,9 @@
 
 package com.github.torlangballe.cetrusandroid
 
+import android.app.UiModeManager
+import android.content.Context.UI_MODE_SERVICE
+import android.content.res.Configuration
 import java.lang.Exception
 import java.util.Comparator
 
@@ -17,6 +20,15 @@ typealias ZAnyObject = Any
 fun ZIsIOS() : Boolean {
     return false
 }
+
+fun ZIsTVBox() : Boolean {
+    val uiModeManager = zMainActivity!!.getSystemService(UI_MODE_SERVICE) as? UiModeManager
+    if (uiModeManager != null && uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) {
+        return true
+    }
+    return false
+}
+
 
 fun <T>MutableList<T>.append(a:T) {
     add(a)

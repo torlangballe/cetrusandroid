@@ -33,6 +33,20 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
     var xStrokeColor = ZColor.Clear()
     var xStrokeWidth = 0.0
 
+    var HandlePressedInPosFunc: ((pos: ZPos) -> Unit)?
+        get() {
+            return touchInfo.handlePressedInPosFunc
+        }
+        set(newValue) {
+            touchInfo.handlePressedInPosFunc = newValue
+//            isUserInteractionEnabled = true
+            isAccessibilityElement = true
+//            accessibilityTraits |= UIAccessibilityTraitButton
+            if (ZIsTVBox()) {
+                AddGestureTo(this, type = ZGestureType.tap)
+            }
+        }
+
     fun SetHandleValueChangedFunc(handler: () -> Unit) {
         handleValueChangedFunc = handler
         this.AddTarget(this, forEventType = ZControlEventType.valueChanged)
