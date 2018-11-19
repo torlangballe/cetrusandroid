@@ -11,7 +11,7 @@ import android.support.v4.graphics.drawable.DrawableCompat
 import android.graphics.drawable.Drawable
 
 class ZActivityIndicator: ProgressBar, ZView {
-    override fun View() : UIView = this
+    override fun View() : ZNativeView = this
     override var objectName = "activity"
     override var isHighlighted: Boolean = false
     override var Usable:Boolean = true

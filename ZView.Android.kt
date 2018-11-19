@@ -15,9 +15,9 @@ import android.view.*
 
 enum class ZGestureType(dayNumber: Int) { tap(1), longpress(2), pan(4), pinch(8), swipe(16), rotation(32) }
 enum class ZGestureState(state: Int)    { began(1), ended(2), changed(4), possible(8), canceled(16), failed(32) }
-typealias UIView = View
+typealias ZNativeView = View
 
-fun uiViewFrame(v: UIView) : ZRect {
+fun nativeViewFrame(v: ZNativeView) : ZRect {
     val scale = ZScreen.Scale
     val left = ZMath.Floor(v.left.toDouble() / scale)
     val top = ZMath.Floor(v.top.toDouble() / scale)
@@ -26,14 +26,14 @@ fun uiViewFrame(v: UIView) : ZRect {
     return ZRect(left, top, right, bottom)
 }
 
-var collapsedViews = mutableMapOf<UIView, ZContainerView>()
+var collapsedViews = mutableMapOf<ZNativeView, ZContainerView>()
 
 interface ZView {
     var objectName: String
     var isHighlighted: Boolean
     var Usable: Boolean
     fun SetOpaque(opaque:Boolean) {}
-    fun View(): UIView
+    fun View(): ZNativeView
 
     var accessibilityLabel : String?
         get()  { return "" }
@@ -44,7 +44,7 @@ interface ZView {
         set(i) { }
 
     var Rect: ZRect // todo: this needs to account for padding
-        get() = uiViewFrame(View())
+        get() = nativeViewFrame(View())
         set(r) {
             val scale = ZScreen.Scale
             View().left = ZMath.Floor(r.Min.x * scale).toInt()
@@ -97,11 +97,11 @@ interface ZView {
         return ZRect(pos / scale, s / scale)
     }
 
-    fun ZView.Child(path: String): UIView? =
+    fun ZView.Child(path: String): ZNativeView? =
             null // not done yet!!!
 
     fun ZView.DumpTree() {
-        dumpUIViewTree(View(), padding = "")
+        dumpZNativeViewTree(View(), padding = "")
     }
 
     var ZView.Usable: Boolean
@@ -209,7 +209,7 @@ interface ZView {
         return null
     }
 
-    fun dumpUIViewTree(view: UIView, padding: String) {
+    fun dumpZNativeViewTree(view: ZNativeView, padding: String) {
         val v = view as? ZView
         if (v != null) {
             ZDebug.Print(padding + v.objectName)
@@ -218,12 +218,12 @@ interface ZView {
         }
         if (view is ViewGroup) {
             for (c in getViewChildren(view)) {
-                dumpUIViewTree(c, padding = padding + "  ")
+                dumpZNativeViewTree(c, padding = padding + "  ")
             }
         }
     }
 
-    fun getUIViewChild(view: UIView, path: String): UIView? {
+    fun getZNativeViewChild(view: ZNativeView, path: String): ZNativeView? {
         var part = ""
         var vpath = path
 
@@ -241,7 +241,7 @@ interface ZView {
         if (popPath()) {
             if (part == "*") {
                 while (!vpath.isEmpty()) {
-                    val v = getUIViewChild(view, path = vpath)
+                    val v = getZNativeViewChild(view, path = vpath)
                     if (v != null) {
                         return v
                     }
@@ -252,13 +252,13 @@ interface ZView {
             for (c in getViewChildren(view)) {
                 if (i != null) {
                     if (c.tag == i!!) {
-                        return (c as UIView)
+                        return (c as ZNativeView)
                     }
                     return null
                 } else if (upper) {
                     if (part == c::class.toString()) {
                         if (!vpath.isEmpty()) {
-                            return getUIViewChild(c, path = vpath)
+                            return getZNativeViewChild(c, path = vpath)
                         }
                         return c
                     }
@@ -276,14 +276,14 @@ interface ZView {
     }
 }
 
-fun dumpUIViewTree(view: UIView, padding: String) {
+fun dumpZNativeViewTree(view: ZNativeView, padding: String) {
 }
 
-fun getUIViewChild(view: UIView, path: String) : UIView? {
+fun getZNativeViewChild(view: ZNativeView, path: String) : ZNativeView? {
     return null
 }
 
-fun getViewChildren(view: UIView) : List<UIView> {
+fun getViewChildren(view: ZNativeView) : List<ZNativeView> {
     var all = mutableListOf<View>()
     if (view is ViewGroup) {
         for (i in 0 .. view.childCount) {

@@ -77,7 +77,7 @@ open class ZStackView: ZContainerView {
     override fun ArrangeChildren(onlyChild: ZView?) {
         var incs = 0
         var decs = 0
-        var sizes = mutableMapOf<UIView, ZSize>()
+        var sizes = mutableMapOf<ZNativeView, ZSize>()
         var ashrink = ZAlignment.HorShrink
         var aexpand = ZAlignment.HorExpand
         var aless = ZAlignment.Left
@@ -237,7 +237,7 @@ class ZColumnStack: ZStackView {
         vertical = false
     }
 
-    override fun Add(view: UIView, align: ZAlignment, marg: ZSize, maxSize: ZSize, index: Int, free: Boolean) : Int {
+    override fun Add(view: ZNativeView, align: ZAlignment, marg: ZSize, maxSize: ZSize, index: Int, free: Boolean) : Int {
         if (vstack == null || vstack!!.cells.size == max) {
             vstack = ZVStackView(space = space)
             return super.Add(vstack!!, align = ZAlignment.Left or ZAlignment.Bottom, marg = ZSize(), maxSize = ZSize(), index = -1, free = false)

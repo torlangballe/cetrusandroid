@@ -57,7 +57,7 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
             Expose()
         }
 
-    override fun View(): UIView =
+    override fun View(): ZNativeView =
             this
 
 //    fun Control() : UIControl =
@@ -175,14 +175,14 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
         Expose()
     }
 
-    fun GetPosFromMe(pos: ZPos, inView: UIView): ZPos {
+    fun GetPosFromMe(pos: ZPos, inView: ZNativeView): ZPos {
         ZNOTIMPLEMENTED()
 //        val cgpos = this.convert(pos.GetCGPoint(), to = inView)
 //        return ZPos(cgpos)
         return ZPos()
     }
 
-    fun GetPosToMe(pos: ZPos, inView: UIView): ZPos {
+    fun GetPosToMe(pos: ZPos, inView: ZNativeView): ZPos {
 //        val cgpos = inView.convert(pos.GetCGPoint(), to = this)
 //        return ZPos(cgpos)
         return ZPos()

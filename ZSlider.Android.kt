@@ -19,7 +19,7 @@ class ZSlider: SeekBar, ZView, ZControl {
     var minLength: Int = 140
     var ValueString: ((v:Float)->String) = { v -> "$v" }
 
-    override fun View() : UIView = this
+    override fun View() : ZNativeView = this
 
     var value:Float
         get() {

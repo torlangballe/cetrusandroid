@@ -17,7 +17,7 @@ data class ZContainerCell(
         var collapsed:Boolean = false,
         var free:Boolean = false,
         var handleTransition: ((size: ZSize, layout: ZScreenLayout, inRect: ZRect, alignRect: ZRect) -> ZRect?)? = null
-        ){}
+        )
 
 open class ZContainerView: ZCustomView {
     var cells = mutableListOf<ZContainerCell>()
@@ -47,11 +47,11 @@ open class ZContainerView: ZCustomView {
         }
     }
 
-    open fun Add(view: UIView, align: ZAlignment, marg: ZSize = ZSize(), maxSize: ZSize = ZSize(), index: Int = -1, free: Boolean = false) : Int {
+    open fun Add(view: ZNativeView, align: ZAlignment, marg: ZSize = ZSize(), maxSize: ZSize = ZSize(), index: Int = -1, free: Boolean = false) : Int {
         return AddCell(ZContainerCell(alignment = align, margin = marg, view = view, maxSize = maxSize, collapsed = false, free = free), index = index)
     }
 
-    fun Contains(view: UIView) : Boolean {
+    fun Contains(view: ZNativeView) : Boolean {
         for (c in cells) {
             if (c.view == view) {
                 return true
@@ -149,7 +149,7 @@ open class ZContainerView: ZCustomView {
         return false
     }
 /*
-    override fun didAddSubview(subview: UIView) {
+    override fun didAddSubview(subview: ZNativeView) {
         super.didAddSubview(subview)
         if (liveArrange) {
             ArrangeChildren()
@@ -243,7 +243,7 @@ open class ZContainerView: ZCustomView {
         return null
     }
 
-    fun RemoveChild(subView: UIView) {
+    fun RemoveChild(subView: ZNativeView) {
         zRemoveViewFromSuper(subView)
         DetachChild(subView)
     }
@@ -255,7 +255,7 @@ open class ZContainerView: ZCustomView {
         }
     }
 
-    fun DetachChild(subView: UIView) {
+    fun DetachChild(subView: ZNativeView) {
         val i = cells.indexWhere { it.view == subView }
         if (i != null) {
             cells.removeAt(i)

@@ -179,7 +179,7 @@ open class ZLabel: TextView, ZView {
     }
 */
 
-    override fun View() : UIView =
+    override fun View() : ZNativeView =
             this
 
     fun SetAlignment(a: ZAlignment) {

@@ -19,7 +19,7 @@ class ZMovieView: VideoView, ZView {
     var handlePlayPause: ((play: Boolean) -> Unit)? = null
     var minSize = ZSize(100.0, 100.0)
 
-    override fun View() : UIView = this
+    override fun View() : ZNativeView = this
 
     constructor() : super(zMainActivityContext!!) {
         this.setOnErrorListener(object : MediaPlayer.OnErrorListener {

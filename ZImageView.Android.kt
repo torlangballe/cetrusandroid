@@ -80,7 +80,7 @@ class ZImageView: ZCustomView, ZImageLoader {
         }
     }
 
-    override fun View() : UIView {
+    override fun View() : ZNativeView {
         return this
     }
 

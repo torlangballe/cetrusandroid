@@ -28,7 +28,7 @@ class ZScrollView: ScrollView, ZView {
         }
     }
 
-    override fun View() : UIView =
+    override fun View() : ZNativeView =
             this
 
     fun SetContentOffset(offset: ZPos, animated: Boolean = true) {

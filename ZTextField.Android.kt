@@ -217,7 +217,7 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
         setMeasuredDimension((s.w).toInt(), s.h.toInt())
     }
 
-    override fun View() : UIView =
+    override fun View() : ZNativeView =
             this
 
     override var Selection: Pair<Int, Int>

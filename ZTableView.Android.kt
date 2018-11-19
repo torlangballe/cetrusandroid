@@ -40,7 +40,7 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
 
     override var isHighlighted:Boolean = false
     override var Usable = true
-    override fun View() : UIView = this
+    override fun View() : ZNativeView = this
 
     var selectionIndex: ZTableIndex = ZTableIndex()
     var owner: ZTableViewDelegate? = null

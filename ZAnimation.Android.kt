@@ -26,16 +26,16 @@ class ZAnimation {
             }
         }
 
-        fun RemoveAllFromView(view: UIView) {
+        fun RemoveAllFromView(view: ZNativeView) {
             view.clearAnimation()
         }
 
-        fun ViewHasAnimations(view: UIView) : Boolean {
+        fun ViewHasAnimations(view: ZNativeView) : Boolean {
             ZNOTIMPLEMENTED()
             return false
         }
 
-        fun PulseView(view: UIView, scale: Double, duration: Double, fromScale: Double = 1.0, repeatCount: Double = Double.MAX_VALUE) {
+        fun PulseView(view: ZNativeView, scale: Double, duration: Double, fromScale: Double = 1.0, repeatCount: Double = Double.MAX_VALUE) {
             val scaleDown = ObjectAnimator.ofPropertyValuesHolder(view,
                     PropertyValuesHolder.ofFloat("scaleX", scale.toFloat()),
                     PropertyValuesHolder.ofFloat("scaleY", scale.toFloat()))
@@ -46,19 +46,19 @@ class ZAnimation {
             scaleDown.start()
         }
 
-        fun ScaleView(view: UIView, scaleTo: Double, duration: Double) {
+        fun ScaleView(view: ZNativeView, scaleTo: Double, duration: Double) {
             animateView(view, from = 1.0, to = scaleTo, duration = duration, type = "transform.scale", repeatCount = 1.0, autoreverses = false)
         }
 
-        fun FadeView(view: UIView, to: Double, duration: Double, from: Double = 1.0) {
+        fun FadeView(view: ZNativeView, to: Double, duration: Double, from: Double = 1.0) {
             animateView(view, from = from, to = to, duration = duration, type = "opacity", repeatCount = 0.0, autoreverses = false)
         }
 
-        fun PulseOpacity(view: UIView, to: Double, duration: Double, from: Double = 1.0, repeatCount: Double = Double.MAX_VALUE) {
+        fun PulseOpacity(view: ZNativeView, to: Double, duration: Double, from: Double = 1.0, repeatCount: Double = Double.MAX_VALUE) {
             animateView(view, from = from, to = to, duration = duration, type = "opacity", repeatCount = repeatCount)
         }
 
-        fun RippleWidget(view: UIView, duration: Double) {
+        fun RippleWidget(view: ZNativeView, duration: Double) {
             ZNOTIMPLEMENTED()
         }
 
@@ -78,13 +78,13 @@ class ZAnimation {
     ZNOTIMPLEMENTED()
         }
 
-        fun FlipViewHorizontal(view: UIView, duration: Double = 0.8, left: Boolean, animate: (() -> Unit)? = null) {
+        fun FlipViewHorizontal(view: ZNativeView, duration: Double = 0.8, left: Boolean, animate: (() -> Unit)? = null) {
             ZNOTIMPLEMENTED()
         }
     }
 }
 
-private fun animateView(view: UIView, from: Double, to: Double, duration: Double, type: String, repeatCount: Double = Double.MAX_VALUE, autoreverses: Boolean = true) {
+private fun animateView(view: ZNativeView, from: Double, to: Double, duration: Double, type: String, repeatCount: Double = Double.MAX_VALUE, autoreverses: Boolean = true) {
 }
 
 fun zTransitionViews(view: ZView, oldView: ZView?, duration: Double, transition: ZTransitionType, done: (() -> Unit)?) {
