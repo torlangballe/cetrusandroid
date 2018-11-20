@@ -25,7 +25,7 @@ open class ZStackView: ZContainerView {
         return tot
     }
 
-    override fun CalculateSize(total: ZSize) : ZSize {
+    override public fun CalculateSize(total: ZSize) : ZSize {
         var s = nettoCalculateSize(total)
         s.Maximize(minSize)
         return s
@@ -39,10 +39,10 @@ open class ZStackView: ZContainerView {
                 val tot = getCellFitSizeInTotal(total = total, cell = c1)
                 val cv = c1.view as? ZView
                 var fs = ZSize(50, 50)
-                if (cv != null) {
-                    fs = cv.CalculateSize(tot)
+                if ((cv != null)) {
+                    fs = cv!!.CalculateSize(tot)
                 }
-//                var fs = zConvertViewSizeThatFitstToZSize(c1.view!!, sizeIn = tot)
+                //                var fs = zConvertViewSizeThatFitstToZSize(c1.view!, sizeIn:tot)
                 var m = c1.margin
                 if ((c1.alignment and ZAlignment.MarginIsOffset)) {
                     m = ZSize(0, 0)
