@@ -374,12 +374,15 @@ private fun addGesture(g: UIGestureRecognizer, view: ZView, handler: ZCustomView
 //}
 //
 
-fun zSetViewFrame(v:View, frame: ZRect) {
+fun zSetViewFrame(v:View, frame: ZRect, layout: Boolean = false) {
     val scale = ZScreen.Scale
     v.left = ZMath.Floor(frame.Min.x * scale).toInt()
     v.top = ZMath.Floor(frame.Min.y * scale).toInt()
     v.right = ZMath.Ceil(frame.Max.x * scale).toInt()
     v.bottom = ZMath.Ceil(frame.Max.y * scale).toInt()
+    if (layout) {
+        v.layout(ZMath.Floor(frame.Min.x * scale).toInt(), ZMath.Floor(frame.Min.y * scale).toInt(), ZMath.Ceil(frame.Max.x * scale).toInt(), ZMath.Ceil(frame.Max.y * scale).toInt())
+    }
 }
 
 fun zLayoutViewAndScale(view:View, frame: ZRect) {

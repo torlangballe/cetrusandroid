@@ -24,6 +24,7 @@ open class ZStackView: ZContainerView {
         }
         return tot
     }
+
     override fun CalculateSize(total: ZSize) : ZSize {
         var s = nettoCalculateSize(total)
         s.Maximize(minSize)
@@ -41,7 +42,7 @@ open class ZStackView: ZContainerView {
                 if (cv != null) {
                     fs = cv.CalculateSize(tot)
                 }
-                // var fs zConvertViewSizeThatFitstToZSize(view = c1.view!!, sizeIn = tot) // calling this causes measure too early or something, makes table rows not show
+//                var fs = zConvertViewSizeThatFitstToZSize(c1.view!!, sizeIn = tot)
                 var m = c1.margin
                 if ((c1.alignment and ZAlignment.MarginIsOffset)) {
                     m = ZSize(0, 0)
@@ -56,7 +57,6 @@ open class ZStackView: ZContainerView {
             s[vertical] -= space
         }
         s[!vertical] = maxOf(s[!vertical], minSize[!vertical])
-
         return s
     }
 
@@ -71,10 +71,7 @@ open class ZStackView: ZContainerView {
         return vr
     }
 
-//    override fun onDraw(canvas: Canvas?) {
-//    }
-//
-    override fun ArrangeChildren(onlyChild: ZView?) {
+    override open fun ArrangeChildren(onlyChild: ZView?) {
         var incs = 0
         var decs = 0
         var sizes = mutableMapOf<ZNativeView, ZSize>()
@@ -119,16 +116,16 @@ open class ZStackView: ZContainerView {
             }
         }
         val cn = r.Center[vertical]
-        var cs = nettoCalculateSize(r.size)[vertical]
+        var cs = CalculateSize(r.size)[vertical]
         cs += margin.size[vertical]
         // subtracts margin, since we've already indented for that
         val diff = r.size[vertical] - cs
-        var lastNonFreeIndex = -1
-        cells.forEachIndexed { i, c3 ->
+        var lastNoFreeIndex = -1
+        for ((i, c3) in cells.withIndex()) {
             if (!c3.collapsed && !c3.free) {
-                lastNonFreeIndex = i
+                lastNoFreeIndex = i
                 val tot = getCellFitSizeInTotal(total = r.size, cell = c3)
-                var s = zConvertViewSizeThatFitstToZSize(view = c3.view!!, sizeIn = tot)
+                var s = zConvertViewSizeThatFitstToZSize(c3.view!!, sizeIn = tot)
                 if (decs > 0 && (c3.alignment and ashrink) && diff != 0.0) {
                     s[vertical] += diff / decs.toDouble()
                 } else if (incs > 0 && (c3.alignment and aexpand) && diff != 0.0) {
@@ -139,18 +136,17 @@ open class ZStackView: ZContainerView {
         }
         var centerDim = 0.0
         var firstCenter = true
-        cells.forEachIndexed { i, c4 ->
+        for ((i, c4) in cells.withIndex()) {
             if (!c4.collapsed && !c4.free) {
                 if ((c4.alignment and (amore or aless))) {
                     var a = c4.alignment
-//                    if (i != lastNonFreeIndex) {
-//                        a = a.Subtracted(ZAlignment.Expand[vertical])
-//                    }
+                    if (i != lastNoFreeIndex) {
+                        a = a.Subtracted(ZAlignment.Expand[vertical])
+                    }
                     val vr = handleAlign(size = sizes[c4.view!!]!!, inRect = r, a = a, cell = c4)
                     //                ZDebug.Print("alignx:", (c4.view as! ZView).objectName, vr)
                     if (onlyChild == null || onlyChild!!.View() == c4.view) {
-                        zSetViewFrame(c4.view!!, frame = vr)
-                        zLayoutViewAndScale(c4.view!!, frame = vr)
+                        zSetViewFrame(c4.view!!, frame = vr, layout = true)
                     }
                     if ((c4.alignment and aless)) {
                         val m = maxOf(r.Min[vertical], vr.Max[vertical] + space)
@@ -195,11 +191,10 @@ open class ZStackView: ZContainerView {
         for (c5 in cells) {
             if (!c5.collapsed && (c5.alignment and amid) && !c5.free) {
                 // .reversed()
-                val a = ZAlignment((c5.alignment.rawValue and ZBitwiseInvert(amid.rawValue)) or aless.rawValue)
+                val a = c5.alignment.Subtracted(amid) or aless
                 val vr = handleAlign(size = sizes[c5.view!!]!!, inRect = r, a = a, cell = c5)
                 if (onlyChild == null || onlyChild!!.View() == c5.view) {
-                    zLayoutViewAndScale(c5.view!!, frame = vr)
-//                    zSetViewFrame(c5.view!!, frame = vr)
+                    zSetViewFrame(c5.view!!, frame = vr, layout = true)
                 }
                 //                ZDebug.Print("alignm:", (c5.view as! ZView).objectName, vr)
                 r.pos[vertical] = vr.Max[vertical] + space
@@ -210,7 +205,7 @@ open class ZStackView: ZContainerView {
                 }
             }
         }
-        HandleAfterLayout()
+        //        HandleAfterLayout()
     }
 }
 
@@ -227,17 +222,18 @@ fun ZVStackView(name: String = "ZVStackView", space: Double = 6.0) : ZStackView 
     return v
 }
 
-class ZColumnStack: ZStackView {
+open class ZColumnStack: ZStackView {
     var vstack: ZStackView? = null
     var max: Int = 0
 
     constructor(max: Int, horSpace: Double) : super(name = "zcolumnstack") {
+
         this.max = max
         space = horSpace
         vertical = false
     }
 
-    override fun Add(view: ZNativeView, align: ZAlignment, marg: ZSize, maxSize: ZSize, index: Int, free: Boolean) : Int {
+    override open fun Add(view: ZNativeView, align: ZAlignment, marg: ZSize, maxSize: ZSize, index: Int, free: Boolean) : Int {
         if (vstack == null || vstack!!.cells.size == max) {
             vstack = ZVStackView(space = space)
             return super.Add(vstack!!, align = ZAlignment.Left or ZAlignment.Bottom, marg = ZSize(), maxSize = ZSize(), index = -1, free = false)

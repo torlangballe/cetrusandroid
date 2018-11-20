@@ -69,6 +69,7 @@ data class ZAlignment(var rawValue: Int) {
 
     fun Subtracted(sub: ZAlignment) : ZAlignment =
             ZAlignment(this.rawValue and ZBitwiseInvert(sub.rawValue))
+
     operator fun get (vertical: Boolean) : ZAlignment {
         if (vertical) {
             return this.Subtracted(Horizontal or HorExpand or HorShrink or HorOut)
@@ -141,6 +142,7 @@ data class ZAlignment(var rawValue: Int) {
 
 infix fun ZAlignment.or(a: ZAlignment) : ZAlignment =
         ZAlignment(rawValue = rawValue or a.rawValue)
+
 infix fun ZAlignment.and(a: ZAlignment) : Boolean =
         ((this.rawValue and a.rawValue) != 0)
 
