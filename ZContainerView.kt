@@ -1,55 +1,44 @@
-//
-//  ZContainerView.Android.kt
-//  Created by Tor Langballe on /20/08/18.
 
+//  ZContainerView.swift
+//  Created by Tor Langballe on /23/9/14.
 package com.github.torlangballe.cetrusandroid
 
-import android.view.View
-import android.view.ViewGroup
-
-// TODO: This contains some complex layout code it would be good to move out to shared extension later
-
 data class ZContainerCell(
-        var alignment: ZAlignment = ZAlignment.Left,
-        var margin: ZSize = ZSize(0, 0),
-        var view: View? = null,
-        var maxSize: ZSize = ZSize(0, 0),
-        var collapsed:Boolean = false,
-        var free:Boolean = false,
-        var handleTransition: ((size: ZSize, layout: ZScreenLayout, inRect: ZRect, alignRect: ZRect) -> ZRect?)? = null
-        )
+        var alignment: ZAlignment,
+        var margin: ZSize,
+        var view: ZNativeView? = null,
+        var maxSize: ZSize = ZSize(0.0, 0.0),
+        var collapsed: Boolean = false,
+        var free: Boolean = false,
+        var handleTransition: ((size: ZSize, layout: ZScreenLayout, inRect: ZRect, alignRect: ZRect) -> ZRect?)? = null) {}
 
 open class ZContainerView: ZCustomView {
-    var cells = mutableListOf<ZContainerCell>()
+    var cells: MutableList<ZContainerCell>
     var margin = ZRect()
     var liveArrange = false
     var portraitOnly = true
 
     constructor(name: String = "ZContainerView") // required
-        : super(name = name) {
+            : super(name = name) {
         cells = mutableListOf<ZContainerCell>()
         margin = ZRect()
+        //        backgroundColor = UIColor.redColor()
     }
 
-    fun VG() : ViewGroup {
-        return View() as ViewGroup
-    }
-
-    fun AddCell(cell: ZContainerCell, index: Int = -1) : Int {
+    fun AddCell(cell: ZContainerCell, index: Int? = null) : Int {
         if (index == -1) {
             cells.append(cell)
-            this.VG().addView(cell.view)
-            return cells.count() - 1
+            zAddNativeView(cell.view!!, toParent = this)
+            return cells.size - 1
         } else {
-            cells.add(index, cell)
-            VG().addView(cell.view, index)
-            return index
+            cells.insert(cell, at = index!!)
+            zAddNativeView(cell.view!!, toParent = this, index = index)
+            return index!!
         }
     }
 
-    open fun Add(view: ZNativeView, align: ZAlignment, marg: ZSize = ZSize(), maxSize: ZSize = ZSize(), index: Int = -1, free: Boolean = false) : Int {
-        return AddCell(ZContainerCell(alignment = align, margin = marg, view = view, maxSize = maxSize, collapsed = false, free = free), index = index)
-    }
+    open fun Add(view: ZNativeView, align: ZAlignment, marg: ZSize = ZSize(), maxSize: ZSize = ZSize(), index: Int = -1, free: Boolean = false) : Int =
+            AddCell(ZContainerCell(alignment = align, margin = marg, view = view, maxSize = maxSize, collapsed = false, free = free, handleTransition = null), index = index)
 
     fun Contains(view: ZNativeView) : Boolean {
         for (c in cells) {
@@ -60,42 +49,47 @@ open class ZContainerView: ZCustomView {
         return false
     }
 
-    override fun CalculateSize(total: ZSize) : ZSize {
-        return minSize
-    }
+    override fun CalculateSize(total: ZSize) : ZSize =
+            minSize
 
     fun SetAsFullView(useableArea: Boolean) {
-        var r = ZScreen.Main
-        if (useableArea) {
-            r = ZScreen.MainUsableRect
+        ZViewSetRect(this, rect = ZScreen.Main)
+        minSize = ZScreen.Main.size
+        if (!ZIsTVBox()) {
+            val h = ZScreen.StatusBarHeight
+            var r = Rect
+            if (h > 20 && !ZScreen.HasNotch()) {
+                r.size.h -= h
+                ZViewSetRect(this, rect = r)
+            } else if (useableArea) {
+                margin.SetMinY(h.toDouble())
+            }
         }
-        minSize = r.size
-        Rect = r
     }
 
-    fun Sort(sorter: (a: ZContainerCell, b: ZContainerCell) -> Boolean) {
-//        cells.sort(by = sorter)
-//        ArrangeChildren()
-//        Expose()
-    }
-
+    //    func Sort(_ sorter:(_ a:ZContainerCell, _ b:ZContainerCell) -> Bool) {
+    open//        cells.sort(by: sorter)
+    //        ArrangeChildren()
+    //        Expose()
+    //    }
+    //
     fun ArrangeChildrenAnimated(onlyChild: ZView? = null) {
-        ZAnimation.Do(duration = 0.6, animations = { ->
+        ZAnimation.Do(duration = 0.6, animations = {   ->
             this.ArrangeChildren(onlyChild = onlyChild)
         })
     }
 
     fun arrangeChild(c: ZContainerCell, r: ZRect) {
         val ir = r.Expanded(c.margin * -2.0)
-        val s = zConvertViewSizeThatFitstToZSize(c.view!!, ir.size)
+        val s = zConvertViewSizeThatFitstToZSize(c.view!!, sizeIn = ir.size)
         var rv = r.Align(s, align = c.alignment, marg = c.margin, maxSize = c.maxSize)
         if (c.handleTransition != null) {
-            val rnew = c.handleTransition!!.invoke(s, ZScreen.Orientation(), r, rv)
-            if (rnew != null) {
-                rv = rnew
+            val r = c.handleTransition!!.invoke(s, ZScreen.Orientation(), r, rv)
+            if (r != null) {
+                rv = r
             }
         }
-        zLayoutViewAndScale(c.view!!, rv)
+        zSetViewFrame(c.view!!, frame = rv)
     }
 
     open fun ArrangeChildren(onlyChild: ZView? = null) {
@@ -106,7 +100,7 @@ open class ZContainerView: ZCustomView {
         }
         for (c in cells) {
             if (c.alignment != ZAlignment.None) {
-                if (onlyChild == null || c.view == onlyChild.View()) {
+                if (onlyChild == null || c.view == onlyChild!!.View()) {
                     arrangeChild(c, r = r)
                 }
                 val v = c.view as? ZContainerView
@@ -127,9 +121,9 @@ open class ZContainerView: ZCustomView {
             val changed = (cells[i].collapsed != collapse)
             if (changed) {
                 if (collapse) {
-                    zRemoveViewFromSuper(cells[i].view!!)
+                    zRemoveNativeViewFromParent(cells[i].view!!, detachFromContainer = false)
                 } else {
-                    VG().addView(cells[i].view!!)
+                    zAddNativeView(cells[i].view!!, toParent = this)
                 }
             }
             cells[i].collapsed = collapse
@@ -148,14 +142,6 @@ open class ZContainerView: ZCustomView {
         }
         return false
     }
-/*
-    override fun didAddSubview(subview: ZNativeView) {
-        super.didAddSubview(subview)
-        if (liveArrange) {
-            ArrangeChildren()
-        }
-    }
-*/
 
     fun RangeChildren(subViews: Boolean = false, foreach: (ZView) -> Boolean) {
         for (c in cells) {
@@ -177,7 +163,7 @@ open class ZContainerView: ZCustomView {
     fun FindViewWithName(name: String) : ZView? {
         val i = FindCellWithName(name)
         if (i != null) {
-            val v = cells[i].view!! as? ZView
+            val v = cells[i].view as? ZView
             if (v != null) {
                 return v
             }
@@ -208,9 +194,9 @@ open class ZContainerView: ZCustomView {
                 if (recursive) {
                     val cv = v as? ZContainerView
                     if (cv != null) {
-                        val fv = cv.FindViewWithName(name)
-                        if (fv != null) {
-                            return fv
+                        val v = cv.FindViewWithName(name)
+                        if (v != null) {
+                            return v
                         }
                     }
                 }
@@ -220,7 +206,7 @@ open class ZContainerView: ZCustomView {
     }
 
     fun FindCellWithName(name: String) : Int? {
-        cells.forEachIndexed { i, c ->
+        for ((i, c) in cells.withIndex()) {
             val v = c.view as? ZView
             if (v != null) {
                 if (v.objectName == name) {
@@ -232,7 +218,7 @@ open class ZContainerView: ZCustomView {
     }
 
     fun FindCellWithView(view: ZView) : Int? {
-        cells.forEachIndexed { i, c ->
+        for ((i, c) in cells.withIndex()) {
             val v = c.view as? ZView
             if (v != null) {
                 if (v.View() == view.View()) {
@@ -244,34 +230,28 @@ open class ZContainerView: ZCustomView {
     }
 
     fun RemoveChild(subView: ZNativeView) {
-        zRemoveViewFromSuper(subView)
+        zRemoveNativeViewFromParent(subView, detachFromContainer = false)
         DetachChild(subView)
     }
 
     fun RemoveAllChildren() {
         for (c in cells) {
             DetachChild(c.view!!)
-            zRemoveViewFromSuper(c.view!!)
+            zRemoveNativeViewFromParent(c.view!!, detachFromContainer = false)
         }
     }
+
+    open fun HandleRotation() {}
 
     fun DetachChild(subView: ZNativeView) {
-        val i = cells.indexWhere { it.view == subView }
-        if (i != null) {
-            cells.removeAt(i)
-        }
-    }
-
-    open fun HandleRotation() {
-    }
-
-    open fun HandleBackButton() {
-        RangeChildren(subViews = true) { view: ZView ->
-            val t = view as? ZTitleBar
-            if (t != null && t!!.closeButton != null) {
-                t?.HandlePressed(t!!.closeButton!!, ZPos(0.0, 0.0))
+        for ((i, c) in cells.withIndex()) {
+            if (c.view == subView) {
+                cells.removeAt(i)
+                break
             }
-            true
         }
+    }
+
+    open fun HandleBackButton() {// only android has hardware back button...
     }
 }

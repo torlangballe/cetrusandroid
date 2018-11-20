@@ -148,7 +148,6 @@ class ZScreen {
         }
 
         fun HasNotch() : Boolean {
-            ZNOTIMPLEMENTED()
             return false
         }
 

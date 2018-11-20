@@ -114,17 +114,7 @@ interface ZView {
         }
 
     fun ZView.RemoveFromParent() {
-        val v = View()
-        val p = v.parent
-        if (p == null) {
-            return
-        }
-        if (p is ViewGroup) {
-            if (p is ZContainerView) {
-                p.DetachChild(v)
-            }
-            p.removeView(v)
-        }
+        zRemoveNativeViewFromParent(View(), detachFromContainer = true)
     }
 
     fun Unfocus() {
@@ -273,6 +263,30 @@ interface ZView {
             }
         }
         return null
+    }
+}
+
+fun zRemoveNativeViewFromParent(view:ZNativeView, detachFromContainer:Boolean) {
+    val p = view.parent
+    if (p == null) {
+        return
+    }
+    if (p is ViewGroup) {
+        if (detachFromContainer && p is ZContainerView) {
+            p.DetachChild(view)
+        }
+        p.removeView(view)
+    }
+}
+
+fun zAddNativeView(view: ZNativeView, toParent: ZNativeView, index: Int? = null) {
+    val vg = toParent as? ViewGroup
+    if (vg != null) {
+        if (index != null) {
+           vg.addView(view, index!!)
+        } else {
+            vg.addView(view)
+        }
     }
 }
 
@@ -427,6 +441,10 @@ fun addGestureWithTouchInfoTo(gl: GestureDetector.OnGestureListener, gd: Gesture
 
     }
     return touchInfo
+}
+
+fun ZViewSetRect(view:ZView, rect:ZRect) {
+    zSetViewFrame(view.View(), rect)
 }
 
 interface ZViewHandler {
