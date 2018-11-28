@@ -16,10 +16,9 @@ open class ZContainerView: ZCustomView {
     var cells: MutableList<ZContainerCell>
     var margin = ZRect()
     var liveArrange = false
-    var portraitOnly = true
+    var singleOrientation = true
 
-    constructor(name: String = "ZContainerView") // required
-            : super(name = name) {
+    constructor(name: String = "ZContainerView") : super(name = name) {
         cells = mutableListOf<ZContainerCell>()
         margin = ZRect()
         //        backgroundColor = UIColor.redColor()
@@ -144,7 +143,7 @@ open class ZContainerView: ZCustomView {
     }
 
     fun RangeChildren(subViews: Boolean = false, foreach: (ZView) -> Boolean) {
-        for (c in cells) {
+        for (c in cells.reversed()) {
             val v = c.view as? ZView
             if (v != null) {
                 if (!foreach(v)) {

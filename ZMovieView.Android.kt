@@ -89,9 +89,8 @@ class ZMovieView: VideoView, ZView {
     fun SetUrl(url: String) {
         val uri = Uri.parse(url)
         super.setVideoURI(uri)
-        Play()
-//            player?.addObserver(this, forKeyPath = "rate", options = NSKeyValueObservingOptions(), context = null)
-//        }
+//        Play()
+
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {

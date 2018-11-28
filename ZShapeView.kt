@@ -34,10 +34,10 @@ open class ZShapeView: ZContainerView, ZImageLoader {
         this.minSize = minSize
         this.type = type
         foregroundColor = ZColor()
-        if (type == ShapeType.roundRect) {
+        if (type == ZShapeView.ShapeType.roundRect) {
             ratio = 0.49
         }
-        if (type == ShapeType.star) {
+        if (type == ZShapeView.ShapeType.star) {
             ratio = 0.6
         }
         isAccessibilityElement = true
@@ -54,13 +54,13 @@ open class ZShapeView: ZContainerView, ZImageLoader {
         if (maxWidth != 0.0) {
             s.w = minOf(s.w, maxWidth)
         }
-        if (type == ShapeType.circle) {
+        if (type == ZShapeView.ShapeType.circle) {
             s.h = maxOf(s.h, s.w)
         }
         return s
     }
 
-    override fun SetImage(image: ZImage?, downloadUrl: String) {
+    override     fun SetImage(image: ZImage?, downloadUrl: String) {
         this.image = image
         Expose()
     }
@@ -68,18 +68,18 @@ open class ZShapeView: ZContainerView, ZImageLoader {
     override fun DrawInRect(rect: ZRect, canvas: ZCanvas) {
         val path = ZPath()
         var r = LocalRect
-        if (type == ShapeType.roundRect) {
+        if (type == ZShapeView.ShapeType.roundRect) {
             r = r.Expanded(ZSize(-1.0, -1.0))
         }
         when (type) {
-            ShapeType.star -> path.AddStar(rect = r, points = count, inRatio = ratio)
-            ShapeType.circle -> path.ArcDegFromCenter(r.Center, radius = r.size.w / 2.0 - strokeWidth / 2.0)
-            ShapeType.roundRect -> {
+            ZShapeView.ShapeType.star -> path.AddStar(rect = r, points = count, inRatio = ratio)
+            ZShapeView.ShapeType.circle -> path.ArcDegFromCenter(r.Center, radius = r.size.w / 2.0 - strokeWidth / 2.0)
+            ZShapeView.ShapeType.roundRect -> {
                 var corner = minOf(r.size.w, r.size.h) * ratio
                 corner = minOf(corner, 15.0)
                 path.AddRect(r, corner = ZSize(corner, corner))
             }
-            ShapeType.rectangle -> path.AddRect(r)
+            ZShapeView.ShapeType.rectangle -> path.AddRect(r)
         }
         if (!foregroundColor.undefined) {
             var o = foregroundColor.Opacity
@@ -97,14 +97,18 @@ open class ZShapeView: ZContainerView, ZImageLoader {
             canvas.SetColor(getStateColor(strokeColor), opacity = o)
             canvas.StrokePath(path, width = strokeWidth)
         }
+        var imarg = imageMargin
+        if (ZIsTVBox()) {
+            imarg.Maximize(ZSize(7.0, 7.0))
+        }
         if ((image != null)) {
             var drawImage = image
             if (isHighlighted) {
-                drawImage = drawImage!!.TintedWithColor(ZColor(white = 0.5))
+                drawImage = drawImage!!.TintedWithColor(ZColor(white = 0.2))
             }
             var o = imageOpacity
             if (!Usable) {
-                o *= 0.6f
+                o *= 0.6.toFloat()
             }
             if (imageFill) {
                 canvas.PushState()
@@ -118,16 +122,17 @@ open class ZShapeView: ZContainerView, ZImageLoader {
                 }
                 var corner: Double? = null
                 if (roundImage) {
-                    if (type == ShapeType.roundRect) {
-                        corner = minOf(15.0, minOf(r.size.w, r.size.h) * ratio) - imageMargin.Min()
-                    } else if (type == ShapeType.circle) {
+                    if (type == ZShapeView.ShapeType.roundRect) {
+                        corner = minOf(15.0, minOf(r.size.w, r.size.h) * ratio) - imarg.Min()
+                    } else if (type == ZShapeView.ShapeType.circle) {
                         corner = image!!.Size.Max()
                     }
                 }
-                canvas.DrawImage(drawImage!!, destRect = r, align = a, opacity = o, corner = corner, margin = imageMargin)
+                canvas.DrawImage(drawImage!!, destRect = r, align = a, opacity = o, corner = corner, margin = imarg)
             }
         }
-        if ((text.text != "")) { var t = text.copy()
+        if ((text.text != "")) {
+            var t = text.copy()
             t.color = getStateColor(t.color)
             t.rect = r.Expanded(-(strokeWidth + 2.0)).Expanded(ZSize(-textXMargin, 0.0))
             t.rect.pos.y += 2
@@ -138,6 +143,9 @@ open class ZShapeView: ZContainerView, ZImageLoader {
             if (imageFill) {
                 canvas.SetDropShadowOff()
             }
+        }
+        if (isFocused) {
+            ZFocus.Draw(canvas, rect = rect, corner = 12.0)
         }
     }
     override var accessibilityLabel: String?

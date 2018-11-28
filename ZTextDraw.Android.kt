@@ -177,13 +177,14 @@ data class ZTextDraw(
 //                p.x = r.Center.x
 //            }
 
-            val tPaint = TextPaint(canvas.paint)
-            tPaint.color = color.color.toArgb()
-            tPaint.isAntiAlias = true
-            tPaint.setTextSize(font.size.toFloat())
-            tPaint.setTypeface(font.typeface)
+            var textPaint = makeTextPaint()
 
-            val builder = StaticLayout.Builder.obtain(text, 0, text.length, tPaint, ZMath.Ceil(r.size.w).toInt())
+            textPaint.color = color.color.toArgb()
+            textPaint.isAntiAlias = true
+            textPaint.setTextSize(font.size.toFloat())
+            textPaint.setTypeface(font.typeface)
+
+            val builder = StaticLayout.Builder.obtain(text, 0, text.length, textPaint, ZMath.Ceil(r.size.w).toInt())
 
             var a = Layout.Alignment.ALIGN_NORMAL
             if (alignment and ZAlignment.Right) {

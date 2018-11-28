@@ -6,17 +6,23 @@
 package com.github.torlangballe.cetrusandroid
 
 import android.graphics.Canvas
-import android.view.GestureDetector
-import android.view.View
-import android.view.ViewGroup
-import android.view.MotionEvent
+import android.view.*
+import android.view.KeyEvent.KEYCODE_DPAD_RIGHT
+import android.view.KeyEvent.KEYCODE_DPAD_LEFT
+import android.view.KeyEvent.KEYCODE_BUTTON_A
+import android.view.KeyEvent.KEYCODE_DPAD_CENTER
+import android.view.KeyEvent.KEYCODE_ENTER
+
+
+
+
 
 
 interface ZCustomViewDelegate {
     fun DrawInRect(rect: ZRect, canvas: ZCanvas)
 }
 
-open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener {
+open class ZCustomView: ViewGroup, ZView, View.OnFocusChangeListener, GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener {
     override var objectName = ""
     override var isHighlighted: Boolean = false
     var touchInfo = ZTouchInfo()
@@ -24,7 +30,14 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
     var minSize = ZSize(0, 0)
     var drawHandler: ((rect: ZRect, canvas: ZCanvas, view: ZCustomView) -> Unit)? = null // lateinit
     var foregroundColor = ZColor.Black()
-    var canFocus = false
+    var _isFocusable = false
+    var canFocus
+        get() = _isFocusable
+        set(f) {
+            _isFocusable = f
+            setFocusable(f)
+//            setFocusableInTouchMode(f)
+        }
     var valueTarget: ZCustomView? = null
     var timers = mutableListOf<ZTimerBase>()
     var amScrolling = false
@@ -38,14 +51,19 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
             return touchInfo.handlePressedInPosFunc
         }
         set(newValue) {
+            if (ZIsTVBox()) {
+                canFocus = true
+            }
             touchInfo.handlePressedInPosFunc = newValue
-//            isUserInteractionEnabled = true
             isAccessibilityElement = true
-//            accessibilityTraits |= UIAccessibilityTraitButton
             if (ZIsTVBox()) {
                 AddGestureTo(this, type = ZGestureType.tap)
             }
         }
+
+    override fun onFocusChange(v: View?, hasFocus: Boolean) {
+
+    }
 
     fun SetHandleValueChangedFunc(handler: () -> Unit) {
         handleValueChangedFunc = handler
@@ -54,10 +72,10 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
 
     open fun AddTarget(t: ZCustomView?, forEventType: ZControlEventType) {
         when (forEventType) {
-            ZControlEventType.pressed -> touchInfo.tapTarget = t
+//            ZControlEventType.pressed -> touchInfo.tapTarget = t
             ZControlEventType.valueChanged -> valueTarget = t
         }
-        View().isClickable = true
+//        View().isClickable = true
     }
 
     override var Usable: Boolean
@@ -74,21 +92,22 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
     override fun View(): ZNativeView =
             this
 
-//    fun Control() : UIControl =
-//            this
-
     constructor(name: String = "customview") : super(zMainActivityContext) {
         var layout = LayoutParams(10, 10)
         setLayoutParams(layout)
         setBackgroundColor(0x000000FF) // is clear
 //        setBackgroundColor(0x00000000) // is clear
         Expose()
+        canFocus = false
         objectName = name
         minSize = ZSize(10, 10)
         foregroundColor = ZColor(color = ZColor.Black().color)
         touchInfo.doPressed = { pos: ZPos ->
             doPressed(pos)
         }
+        isClickable = true
+//        setOnKeyListener(this)
+        onFocusChangeListener = this
     }
 
     override fun CalculateSize(total: ZSize): ZSize =
@@ -324,16 +343,6 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
         updateBGAndCorner()
     }
 
-    /*
-    override val canBecomeFirstResponder: Boolean
-        get() = canFocus
-
-    override fun motionEnded(motion: UIEventSubtype, event: UIEvent?) {
-        if (motion == .motionShake) {
-            mainZApp?.HandleShake()
-        }
-    }
-*/
     fun AddGestureTo(view: ZView, type: ZGestureType, taps: Int = 1, touches: Int = 1, duration: Double = 0.8, movement: Double = 10.0, dir: ZAlignment = ZAlignment.None) {
         val gl = view.View() as? GestureDetector.OnGestureListener
         val gd = view.View() as? GestureDetector.OnDoubleTapListener
@@ -359,6 +368,24 @@ open class ZCustomView: ViewGroup, ZView, GestureDetector.OnGestureListener, Ges
 //        val r = ZMath.DegToRad(degrees)
 //        this.transform = CGAffineTransform(rotationAngle = CGFloat(r))
     }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        var handled = false
+
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_BUTTON_A ->
+                // ... handle selections
+                handled = true
+            KeyEvent.KEYCODE_DPAD_LEFT ->
+                // ... handle left action
+                handled = true
+            KeyEvent.KEYCODE_DPAD_RIGHT ->
+                // ... handle right action
+                handled = true
+        }
+        return handled || super.onKeyDown(keyCode, event)
+    }
+
 }
 
 /*

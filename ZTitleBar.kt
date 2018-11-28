@@ -18,8 +18,9 @@ class ZTitleBar: ZStackView {
     var closeHandler: ZViewHandler? = null
 
     constructor(text: String = "", closeType: CloseButtons = CloseButtons.cross, closeAlignX: ZAlignment = ZAlignment.Left) : super(name = "titlebar") {
-
-        closeButton = ZImageView(namedImage = closeType.rawValue + ".png")
+        if (closeType != CloseButtons.none) {
+            closeButton = ZImageView(namedImage = closeType.rawValue + ".png")
+        }
         title = ZLabel(text = text, maxWidth = ZScreen.Main.size.w, font = ZFont.Nice(25.0), align = ZAlignment.Left)
         title.Color = ZColor.White()
         title.adjustsFontSizeToFitWidth = true
@@ -31,9 +32,16 @@ class ZTitleBar: ZStackView {
         //        if ZScreen.HasNotch() {
         //            minSize.h += 88
         //        }
-        closeButton?.AddTarget(this, forEventType = ZControlEventType.pressed)
+        //      closeButton?.AddTarget(self, forEventType:ZControlEventType.pressed)
         closeButton?.accessibilityLabel = ZWords.GetClose()
-        AddTarget(this, forEventType = ZControlEventType.pressed)
+        closeButton?.HandlePressedInPosFunc = { pos  ->
+            if (this!!.closeHandler != null) {
+                this!!.closeHandler!!.HandleClose(sender = this!!)
+            } else {
+                ZPopTopView()
+            }
+        }
+        //        AddTarget(self, forEventType:ZControlEventType.pressed)
         if (closeButton != null) {
             Add(closeButton!!, align = closeAlignX or ZAlignment.Bottom)
         }
@@ -45,20 +53,13 @@ class ZTitleBar: ZStackView {
         }
     }
 
-    override fun HandlePressed(sender: ZView, pos: ZPos) {
-        if (sender.View() == closeButton) {
-            if (closeHandler != null) {
-                closeHandler!!.HandleClose(sender = this)
-            } else {
-                ZPopTopView()
-                //overrideDuration:0) //, overrideTransition:.fade)
-            }
-        } else {
-            ZTextDismissKeyboard()
-        }
-    }
-
-    override fun HandleBeforeLayout() {
+    override//    override func HandlePressed(_ sender: ZView, pos:ZPos) {
+    //        if sender.View() == closeButton {
+    //        } else {
+    //            ZTextDismissKeyboard()
+    //        }
+    //    }
+    fun HandleBeforeLayout() {
         if (!sizeCalculated) {
             sizeCalculated = true
             RangeChildren() { view  ->

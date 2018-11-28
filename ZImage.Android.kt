@@ -111,10 +111,10 @@ class ZImage(var bitmap:Bitmap? = null) {
     fun Make9PatchImage(capInsets: ZRect) : ZImage {
         if (bitmap != null) {
             val image = ZImage(null)
-            val left = capInsets.Min.x.toInt()
-            val top = capInsets.Min.y.toInt()
-            val right = (Size.w - capInsets.Max.x).toInt()
-            val bottom = (Size.h - capInsets.Max.y).toInt()
+            val left = capInsets.Min.x.toInt() * scale.toInt()
+            val top = capInsets.Min.y.toInt() * scale.toInt()
+            val right = (Size.w - capInsets.Max.x).toInt() * scale.toInt()
+            val bottom = (Size.h - capInsets.Max.y).toInt() * scale.toInt()
             image.ninepatch = NinePatchBitmapFactory.createNinePatch(zMainActivityContext!!.resources, bitmap!!, top, left, bottom, right)
             image.scale = scale
             return image

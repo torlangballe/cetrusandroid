@@ -10,10 +10,9 @@ package com.github.torlangballe.cetrusandroid
 data class ZFocus (val _dummy: Int = 0) {
     companion object {
         var color = ZColor(r = 0.5, g = 0.5, b = 1.0)
-
-        fun Draw(canvas: ZCanvas, rect: ZRect, corner: Double = 5.0) {
+        fun Draw(canvas: ZCanvas, rect: ZRect, corner: Double = 7.0) {
             var w = 5.0
-            val r = rect.Expanded(-2.0)
+            val r = rect.Expanded(-3.0)
             var opacity = 0.4
             val path = ZPath(rect = r, corner = ZSize(corner, corner))
             while (w > 0) {

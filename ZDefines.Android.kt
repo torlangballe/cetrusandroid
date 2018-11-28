@@ -29,7 +29,6 @@ fun ZIsTVBox() : Boolean {
     return false
 }
 
-
 fun <T>MutableList<T>.append(a:T) {
     add(a)
 }
@@ -54,8 +53,8 @@ fun String.uppercased() : String {
     return toUpperCase()
 }
 
-fun String.removedLast() : String {
-    return removeRange(length - 1, length)
+fun String.removedLast(n:Int = 1) : String {
+    return dropLast(n)
 }
 // special helper companion class that is inserted into enums with values, for fromRaw conversion:
 open class ZEnumCompanion<T, V>(private val valueMap: Map<T, V>) {

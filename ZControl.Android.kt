@@ -7,7 +7,7 @@
 package com.github.torlangballe.cetrusandroid
 
 //typealias ZControlEvents = UIControlEvents
-enum class ZControlEventType { pressed, valueChanged }
+enum class ZControlEventType { valueChanged } // pressed,
 
 interface ZControl {
     var High: Boolean

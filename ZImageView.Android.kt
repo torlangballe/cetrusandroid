@@ -86,18 +86,18 @@ class ZImageView: ZCustomView, ZImageLoader {
             val r = LocalRect.Align(drawImage.Size, align = ZAlignment.Center or ZAlignment.Shrink)
             canvas.DrawImage(drawImage, destRect = r)
             if (isFocused) {
-                ZFocus.Draw(canvas, rect = r, corner = 5.0)
+                ZFocus.Draw(canvas, rect = r, corner = 8.0)
             }
         }
     }
 
-    override fun AddTarget(t: ZCustomView?, forEventType: ZControlEventType) {
-        touchInfo.tapTarget = t
-        assert(forEventType == ZControlEventType.pressed)
-//        isUserInteractionEnabled = true
-        isAccessibilityElement = true
-//        accessibilityTraits |= UIAccessibilityTraitButton
-    }
+//    override fun AddTarget(t: ZCustomView?, forEventType: ZControlEventType) {
+//        touchInfo.tapTarget = t
+//        assert(forEventType == ZControlEventType.pressed)
+////        isUserInteractionEnabled = true
+//        isAccessibilityElement = true
+////        accessibilityTraits |= UIAccessibilityTraitButton
+//    }
 }
 
 interface ZImageLoader {

@@ -108,7 +108,7 @@ class ZSlider: SeekBar, ZView, ZControl {
         w.ArrangeChildren()
         w.Show(true)
         val oldHandle = parent.touchInfo.handlePressedInPosFunc
-        AddTarget(parent, forEventType = ZControlEventType.pressed)
+//        AddTarget(parent, forEventType = ZControlEventType.pressed)
         parent.touchInfo.handlePressedInPosFunc = { pos  ->
             done(this.value)
             parent.RemoveChild(w)

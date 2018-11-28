@@ -8,18 +8,10 @@ package com.github.torlangballe.cetrusandroid
 
 import android.app.Activity
 import android.content.Context
-import android.content.pm.ActivityInfo
-import android.hardware.SensorManager
-import android.view.OrientationEventListener
-import android.view.Surface
-import android.view.WindowManager
-import android.widget.Toast
-import android.R.attr.orientation
-import android.app.Application
-import android.content.res.Configuration
-import android.content.Context.WINDOW_SERVICE
-import android.support.v4.content.ContextCompat.getSystemService
-import android.util.DisplayMetrics
+import android.view.KeyEvent
+import android.content.pm.PackageManager
+
+
 
 var zMainActivityContext: Context? = null
 var zMainActivity: Activity? = null
@@ -119,6 +111,8 @@ open class ZApp {
 
     open fun HandleOpenUrl(url: ZUrl, showMessage: Boolean = true, done: (() -> Unit)? = null) : Boolean =
             false
+
+    open fun HandleExit() {}
 }
 
 open class ZActivity: Activity() {
@@ -126,6 +120,55 @@ open class ZActivity: Activity() {
         val view = ZGetCurrentyPresentedView()
         view.HandleBackButton()
     }
+
+    override fun onStop() {
+        mainZApp?.HandleExit()
+        super.onStop()
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean { // seems crazy we do this globally and not on focused view. Is this right????
+        if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            val focused = getCurrentFocus()
+            if (focused != null) {
+                val cv = focused as ZCustomView
+                if (cv != null) {
+                    focused.HandlePressedInPosFunc?.invoke(ZPos(0.0, 0.0))
+                }
+            }
+            return true
+        }
+        return when (keyCode) {
+            KeyEvent.KEYCODE_D -> {
+                true
+            }
+            KeyEvent.KEYCODE_F -> {
+                true
+            }
+            KeyEvent.KEYCODE_J -> {
+                true
+            }
+            KeyEvent.KEYCODE_K -> {
+                true
+            }
+            else -> super.onKeyUp(keyCode, event)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            1 -> if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                ZDebug.Print("got permession")
+            } else {
+                ZDebug.Print("denied permession")
+            }
+        }
+    }
+
+
 }
 // var ZMainFunc:((args: List<String>)->Unit)? = null
 

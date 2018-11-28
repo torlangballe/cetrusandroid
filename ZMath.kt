@@ -10,22 +10,21 @@ import java.util.Random
 
 data class ZMath (val _dummy: Int = 0) {
     companion object {
-        val PI = kotlin.math.PI
-
+        val PI: Double = 3.141592653589793
         val DegreesToMeters = (111.32 * 1000)
         val MetersToDegrees = 1 / DegreesToMeters
 
         fun RadToDeg(rad: Double) : Double =
-                rad * 180 / PI
+            rad * 180 / PI
 
         fun DegToRad(deg: Double) : Double =
-                deg * PI / 180
+            deg * PI / 180
 
         fun AngleDegToPos(deg: Double) : ZPos =
-                ZPos(sin(DegToRad(deg)), -cos(DegToRad(deg)))
+            ZPos(sin(DegToRad(deg)), -cos(DegToRad(deg)))
 
         fun PosToAngleDeg(pos: ZPos) : Double =
-                RadToDeg(ArcTanXYToRad(pos))
+            RadToDeg(ArcTanXYToRad(pos))
 
         fun GetDistanceFromLongLatInMeters(pos1: ZPos, pos2: ZPos) : Double {
             val R = 6371.0
@@ -37,14 +36,26 @@ data class ZMath (val _dummy: Int = 0) {
             return c * R * 1000.0
         }
 
+        fun Fraction(v: Double) : Double =
+            v - Floor(v)
+
         fun Floor(v: Double) : Double =
-                floor(v)
+            floor(v)
 
         fun Ceil(v: Double) : Double =
-                ceil(v)
+            ceil(v)
 
-        fun Pow(a: Double, power: Double) : Double =
-                a.pow(power)
+        fun Log10(d: Double) : Double =
+            log10(d)
+
+        fun GetNiceIncsOf(d: Double, incCount: Int) : Double {
+            val l = floor(log10(d))
+            var n = Pow(10.0, l)
+            while (d / n < incCount.toDouble()) {
+                n = n / 2.0
+            }
+            return n
+        }
 
         fun ArcTanXYToRad(pos: ZPos) : Double {
             var a = (atan2(pos.y, pos.x)).toDouble()
@@ -54,7 +65,7 @@ data class ZMath (val _dummy: Int = 0) {
             return a
         }
 
-        fun MixedArrayValueAtIndex(array: List<Double>, index: Double) : Double {
+        fun MixedArrayValueAtIndex(array: MutableList<Double>, index: Double) : Double {
             if (index < 0.0) {
                 return array[0]
             }
@@ -71,26 +82,7 @@ data class ZMath (val _dummy: Int = 0) {
             return array.lastOrNull() ?: 0.0
         }
 
-        fun MixedArrayValueAtT(array: List<Double>, t: Double) : Double =
-                MixedArrayValueAtIndex(array, index = ((array.size).toDouble() - 1) * t)
-
-        fun NanCheck(d: Double, set: Double = -1.0) : Double {
-            if (d.isNaN()) {
-                return set
-            }
-
-            return d
-        }
-
-        fun Random1() : Double {
-            val random = Random()
-            return random.nextDouble()
-        }
-        fun RandomN(n:Int) : Int {
-            val random = Random()
-            return random.nextInt(n)
-        }
-
+        fun MixedArrayValueAtT(array: MutableList<Double>, t: Double) : Double =
+            MixedArrayValueAtIndex(array, index = ((array.size).toDouble() - 1) * t)
     }
 }
-

@@ -264,9 +264,9 @@ open class ZLabel: TextView, ZView {
         }
     }
 */
-    fun AddTarget(t: ZCustomView?, forEventType: ZControlEventType) {
-        tapTarget = t
-        assert(forEventType == ZControlEventType.pressed)
-//        this.isUserInteractionEnabled = true
-    }
+//    fun AddTarget(t: ZCustomView?, forEventType: ZControlEventType) {
+//        tapTarget = t
+//        assert(forEventType == ZControlEventType.pressed)
+////        this.isUserInteractionEnabled = true
+//    }
 }

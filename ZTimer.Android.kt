@@ -32,7 +32,7 @@ open class ZTimerBase : Closeable {
 class ZRepeater: ZTimerBase() {
     var closure: (() -> Boolean)? = null
 
-    fun Set(secs: Double, now: Boolean = false, done: () -> Boolean) {
+    fun Set(secs: Double, now: Boolean = false, onMainThread:Boolean = true, done: () -> Boolean) {
         super.Stop()
         if (now) {
             if (!done()) {
@@ -40,11 +40,22 @@ class ZRepeater: ZTimerBase() {
             }
         }
         androidTimer = Timer()
-        androidTimer!!.schedule(object : TimerTask() {
+        androidTimer!!.scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
-                zMainActivity!!.runOnUiThread {
+                if (zMainActivity == null) {
+                    print("Null!!!")
+                }
+                if (onMainThread) {
+                    zMainActivity?.runOnUiThread {
+                        if (!done()) {
+                            Stop()
+                        }
+                    }
+                } else {
                     if (!done()) {
-                        Stop()
+                        zMainActivity!!.runOnUiThread {
+                            Stop()
+                        }
                     }
                 }
             }

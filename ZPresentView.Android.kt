@@ -14,15 +14,18 @@ data class Attributes(
         var oldTransition: ZTransitionType = ZTransitionType.none,
         var lightContent: Boolean = true,
         var useableArea: Boolean = true,
-        var portraitOnly:Boolean = false,
+        var singleOrientation:Boolean = false,
         var view: ZContainerView? = null
 ) {}
 
 var stack = mutableListOf<Attributes>()
 
-fun ZPresentView(view: ZView, duration: Double = 0.4, transition: ZTransitionType = ZTransitionType.none, fadeToo: Boolean = false, oldTransition: ZTransitionType = ZTransitionType.reverse, makeFull: Boolean = false, useableArea: Boolean = false, deleteOld: Boolean = false, lightContent: Boolean = true, portraitOnly: Boolean? = null, done: (() -> Unit)? = null) {
+fun ZPresentView(view: ZView, duration: Double = 0.4, transition: ZTransitionType = ZTransitionType.none, fadeToo: Boolean = false, oldTransition: ZTransitionType = ZTransitionType.reverse, makeFull: Boolean = false, useableArea: Boolean = false, deleteOld: Boolean = false, lightContent: Boolean = true, singleOrientation: Boolean? = null, done: (() -> Unit)? = null) {
     val os = stack.lastOrNull()
     val vc = view as ZContainerView
+
+    val oldView = if (os != null) os.view else null
+
     if (vc != null) {
         val a = Attributes()
         a.duration = duration
@@ -30,14 +33,18 @@ fun ZPresentView(view: ZView, duration: Double = 0.4, transition: ZTransitionTyp
         a.oldTransition = oldTransition
         a.lightContent = lightContent
         a.useableArea = !makeFull
-        a.portraitOnly = portraitOnly ?: vc.portraitOnly
+        a.singleOrientation = singleOrientation ?: vc.singleOrientation
         a.view = vc
         stack.append(a)
         view.SetAsFullView(useableArea = !makeFull)
         view.ArrangeChildren()
-
+        if (deleteOld) {
+            if (oldView != null) {
+                zRemoveNativeViewFromParent(oldView, detachFromContainer = false)
+                stack.popLast()
+            }
+        }
         if (transition != ZTransitionType.none) {
-            val oldView = if (os != null) os.view else null
             zTransitionViews(view, oldView, duration, transition) {
                 setContentView(view, a, done)
             }
@@ -50,9 +57,10 @@ fun ZPresentView(view: ZView, duration: Double = 0.4, transition: ZTransitionTyp
 
 private fun setContentView(view:ZView, a:Attributes, done: (() -> Unit)? = null) {
     zMainActivity!!.setContentView(view.View())
-    val o = (if (a.portraitOnly) ActivityInfo.SCREEN_ORIENTATION_NOSENSOR else ActivityInfo.SCREEN_ORIENTATION_SENSOR)
+    val o = (if (a.singleOrientation) ActivityInfo.SCREEN_ORIENTATION_NOSENSOR else ActivityInfo.SCREEN_ORIENTATION_SENSOR)
     zMainActivity!!.setRequestedOrientation(o)
     ZScreen.StatusBarVisible = a.useableArea
+    setFocusInView(view as ZContainerView)
     if (done != null) { // needs to be on callback after view presented or something
         done()
     }
@@ -60,9 +68,9 @@ private fun setContentView(view:ZView, a:Attributes, done: (() -> Unit)? = null)
 
 fun ZPopTopView(namedView: String = "", animated: Boolean = true, overrideDuration: Float = -1f, overrideTransition: ZTransitionType = ZTransitionType.none, done: (() -> Unit)? = null, changeOrientation:Boolean = true) {
     var p = stack.popLast()
-    var wasPortrait = false
+    var wasSingleOrientation = false
     if (p != null) {
-        wasPortrait = p.portraitOnly
+        wasSingleOrientation = p.singleOrientation
         if (p.view != null) {
             val parent = p.view!!.View().parent
             if (parent != null) {
@@ -78,16 +86,15 @@ fun ZPopTopView(namedView: String = "", animated: Boolean = true, overrideDurati
         p = stack.last()
         if (p != null) {
             ZScreen.StatusBarVisible = p.useableArea
-            if (changeOrientation) {
+            if (changeOrientation && !ZIsTVBox()) {
                 val o = zMainActivity!!.getResources().getConfiguration().orientation
                 val isPortrait = (o == Configuration.ORIENTATION_PORTRAIT)
-
-                if (p.portraitOnly && !isPortrait) {
+                if (p.singleOrientation && !isPortrait) {
                     zMainActivity!!.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
                     ZScreen.orientation = ZScreenLayout.portrait
-                } else {
-                    zMainActivity!!.setContentView(p.view!!.View())
                 }
+            } else {
+                zMainActivity!!.setContentView(p.view!!.View())
             }
         }
     }
@@ -102,7 +109,7 @@ fun zHandleOrientationChanged() {
         ZScreen.orientation = ZScreenLayout.landscapeLeft
     }
     ZPopTopView(changeOrientation = false)
-    ZPresentView(s.view!!, makeFull = !s.useableArea, deleteOld = true, lightContent = s.lightContent, portraitOnly = s.portraitOnly)
+    ZPresentView(s.view!!, makeFull = !s.useableArea, deleteOld = true, lightContent = s.lightContent, singleOrientation = s.singleOrientation)
     val cv = s.view as ZContainerView
     if (cv != null) {
         cv.HandleRotation()
@@ -113,3 +120,15 @@ fun ZGetCurrentyPresentedView() : ZContainerView {
     return stack.last().view!!
 }
 
+private fun setFocusInView(view:ZContainerView) {
+    view.RangeChildren(subViews = true) { view ->
+        val v = view as? ZCustomView
+        if (v != null) {
+            if (v!!.canFocus) {
+                view.Focus()
+                false
+            }
+        }
+        true
+    }
+}

@@ -60,7 +60,7 @@ data class ZStr(val dummy:Int = 0) {
             if (str.isEmpty()) {
                 return listOf()
             }
-            return str.split(delimiters = sep)
+            return str.split(sep)
         }
 
         fun SplitByChars(str: String, chars: String) : List<String> {
@@ -368,22 +368,42 @@ data class ZStr(val dummy:Int = 0) {
             return null
         }
 */
-        fun NiceDouble(d: Double, maxSig: Int = 8) : String {
+
+        fun NiceDouble(d: Double, maxSig: Int = 8, separator: String = ",") : String {
+            var n = d.toLong()
+            val f = ZMath.Fraction(d)
             val format = "%.${maxSig}f"
-            var str = Format(format, d)
-            if (str.contains("")) {
+            var fstr = ZStr.Format(format, f)
+            if (fstr.contains(".")) {
                 while (true) {
-                    val t = Tail(str)
-                    if (t == "0") {
-                        str = str.removedLast()
-                    } else if (t == ".") {
-                        return str.removedLast()
+                    val s = ZStr.Tail(fstr)
+                    if (s == "0") {
+                        fstr = fstr.removedLast()
+                    } else if (s == ".") {
+                        fstr = fstr.removedLast()
+                        break
                     } else {
-                        return str
+                        break
                     }
                 }
             }
-            return str;
+            if (fstr == "0") {
+                fstr = ""
+            }
+            var str = ""
+            while (true) {
+                if (n / 1000 > 0) {
+                    str = ZStr.Format("%03d", n % 1000) + str
+                } else {
+                    str = "${n % 1000}" + str
+                }
+                n /= 1000
+                if (n == 0.toLong()) {
+                    break
+                }
+                str = separator + str
+            }
+            return str + fstr
         }
 
         fun SplitLines(str: String, skipEmpty: Boolean = true) : List<String> {
