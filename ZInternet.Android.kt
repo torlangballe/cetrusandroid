@@ -10,14 +10,22 @@ import java.io.InputStreamReader
 
 class ZIPAddress {
     var address: InetAddress? = null
+    fun GetString() : String {
+        if (address == null) {
+            return ""
+        }
+        return address!!.hostAddress!!
+    }
 }
 
 class ZInternet {
     companion object {
         fun ResolveAddress(address: String, got: (a: ZIPAddress) -> Unit) {
-            var ip = ZIPAddress()
-            ip.address = InetAddress.getByName(address)
-            got(ip)
+            ZGetBackgroundQue().async {
+                var ip = ZIPAddress()
+                ip.address = InetAddress.getByName(address)
+                got(ip)
+            }
         }
 
         fun SendWithUDP(address: ZIPAddress, port: Int, data: ZData, done: (e: ZError?) -> Unit) {
@@ -26,14 +34,12 @@ class ZInternet {
                 ds = DatagramSocket()
                 val dp: DatagramPacket
                 dp = DatagramPacket(data.data, data.length, address.address, port)
-                ds!!.setBroadcast(true)
-                ds!!.send(dp)
+                ds.setBroadcast(true)
+                ds.send(dp)
             } catch (e: Exception) {
                 done(ZNewError(e.localizedMessage))
             } finally {
-                if (ds != null) {
-                    ds!!.close()
-                }
+                ds?.close()
                 done(null)
             }
         }
@@ -45,10 +51,11 @@ class ZInternet {
             return TrafficStats.getTotalRxBytes()
         }
 
-        fun PingAddress(ipAddress: String): Double {
-            val pingCommand = "/system/bin/ping -c 1 $ipAddress"
+        fun PingAddressForLatency(ipAddress: ZIPAddress): Double? {
+            val a = ipAddress.GetString()
+            val pingCommand = "/system/bin/ping -c 1 $a"
             var inputLine: String? = ""
-            var avgRtt = 0.0
+            var avgRtt:Double? = null
 
             try {
                 // execute the command on the environment interface
@@ -68,13 +75,14 @@ class ZInternet {
                 e.printStackTrace()
             }
 
-            // Extracting the average round trip time from the inputLine string
-            val afterEqual = inputLine!!.substring(inputLine.indexOf("="), inputLine.length).trim { it <= ' ' }
-            val afterFirstSlash =
-                afterEqual.substring(afterEqual.indexOf('/') + 1, afterEqual.length).trim { it <= ' ' }
-            val strAvgRtt = afterFirstSlash.substring(0, afterFirstSlash.indexOf('/'))
-            avgRtt = java.lang.Double.valueOf(strAvgRtt)
-
+            if (inputLine != null) {
+                // Extracting the average round trip time from the inputLine string
+                val afterEqual = inputLine!!.substring(inputLine.indexOf("="), inputLine.length).trim { it <= ' ' }
+                val afterFirstSlash =
+                    afterEqual.substring(afterEqual.indexOf('/') + 1, afterEqual.length).trim { it <= ' ' }
+                val strAvgRtt = afterFirstSlash.substring(0, afterFirstSlash.indexOf('/'))
+                avgRtt = java.lang.Double.valueOf(strAvgRtt) / 1000.0
+            }
             return avgRtt
         }
     }

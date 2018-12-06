@@ -135,7 +135,7 @@ open class ZShapeView: ZContainerView, ZImageLoader {
             var t = text.copy()
             t.color = getStateColor(t.color)
             t.rect = r.Expanded(-(strokeWidth + 2.0)).Expanded(ZSize(-textXMargin, 0.0))
-            t.rect.pos.y += 2
+            t.rect.pos.y += 3.5 * ZScreen.SoftScale
             if (imageFill) {
                 canvas.SetDropShadow(ZSize(0.0, 0.0), blur = 2f)
             }
@@ -145,7 +145,7 @@ open class ZShapeView: ZContainerView, ZImageLoader {
             }
         }
         if (isFocused) {
-            ZFocus.Draw(canvas, rect = rect, corner = 12.0)
+            ZFocus.Draw(canvas, rect = rect, corner = 9.0)
         }
     }
     override var accessibilityLabel: String?

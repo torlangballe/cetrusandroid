@@ -30,7 +30,7 @@ class ZImageView: ZCustomView, ZImageLoader {
     constructor(namedImage: String, scaleInsets: ZRect = ZRect.Null, maxSize: ZSize = ZSize()) : super(name = namedImage) {
         objectName = namedImage
         this.maxSize = maxSize
-        var im = ZImage(named = namedImage)
+        val im = ZImage.Named(namedImage)
         if (im != null) {
             if (!scaleInsets.IsNull) {
                 image = im.Make9PatchImage(capInsets = scaleInsets)
@@ -47,14 +47,6 @@ class ZImageView: ZCustomView, ZImageLoader {
         }
     }
 
-//    override fun sizeThatFits(size: CGSize) : CGSize {
-//        if (!maxSize.IsNull()) {
-//            return maxSize.GetCGSize()
-//        }
-//        val s = ZSize(super.sizeThatFits(size))
-//        return (s + margin * 2.0).GetCGSize()
-//    }
-//
     override fun CalculateSize(total: ZSize) : ZSize {
         var s = minSize
         if (image != null) {
@@ -66,6 +58,7 @@ class ZImageView: ZCustomView, ZImageLoader {
         return s
     }
 
+    // raw-kotlin: override
     override fun SetImage(image: ZImage?, downloadUrl: String) {
         this.downloadUrl = downloadUrl
         this.image = image
@@ -86,17 +79,18 @@ class ZImageView: ZCustomView, ZImageLoader {
             val r = LocalRect.Align(drawImage.Size, align = ZAlignment.Center or ZAlignment.Shrink)
             canvas.DrawImage(drawImage, destRect = r)
             if (isFocused) {
-                ZFocus.Draw(canvas, rect = r, corner = 8.0)
+                ZFocus.Draw(canvas, rect = r, corner = 5.0)
             }
         }
     }
-
-//    override fun AddTarget(t: ZCustomView?, forEventType: ZControlEventType) {
+//
+//
+//    override func AddTarget(_ t: ZCustomView?, forEventType:ZControlEventType) {
 //        touchInfo.tapTarget = t
-//        assert(forEventType == ZControlEventType.pressed)
-////        isUserInteractionEnabled = true
+//        assert(forEventType == .pressed)
+//        isUserInteractionEnabled = true
 //        isAccessibilityElement = true
-////        accessibilityTraits |= UIAccessibilityTraitButton
+//        accessibilityTraits |= UIAccessibilityTraitButton
 //    }
 }
 

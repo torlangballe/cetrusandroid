@@ -33,7 +33,9 @@ open class ZApp {
         fun SetupActivity(activity:Activity, first:Boolean) {
             zMainActivity = activity
             zMainActivityContext = activity.applicationContext
-
+            if (ZIsTVBox()) {
+                ZScreen.SoftScale = 2.0
+            }
             if (!first) {
                 zHandleOrientationChanged()
             }

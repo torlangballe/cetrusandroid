@@ -87,6 +87,8 @@ class ZColor (
         fun Yellow(): ZColor = ZColor(Color.valueOf(Color.YELLOW))
         fun Green(): ZColor = ZColor(Color.valueOf(Color.GREEN))
         fun Orange(): ZColor = ZColor(1.0, 0.5, 0.0)
+        fun Cyan(): ZColor = ZColor(Color.valueOf(Color.CYAN))
+        fun Magenta(): ZColor = ZColor(Color.valueOf(Color.MAGENTA))
     }
 }
 

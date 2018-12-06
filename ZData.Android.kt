@@ -11,7 +11,7 @@ import java.lang.Exception
 //  Created by Tor Langballe on /15/08/18.
 //
 
-class ZData(var data:ByteArray = ByteArray(0)) {
+open class ZData(var data:ByteArray = ByteArray(0)) {
     constructor(fileUrl: ZFileUrl) : this(ByteArray(0)) {
         ZNOTIMPLEMENTED()
     }

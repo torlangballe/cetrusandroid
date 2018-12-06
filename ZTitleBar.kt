@@ -23,8 +23,8 @@ class ZTitleBar: ZStackView {
         }
         title = ZLabel(text = text, maxWidth = ZScreen.Main.size.w, font = ZFont.Nice(25.0), align = ZAlignment.Left)
         title.Color = ZColor.White()
-        title.adjustsFontSizeToFitWidth = true
-        title.minimumScaleFactor = 0.5
+//        title.adjustsFontSizeToFitWidth = true
+//        title.minimumScaleFactor = 0.5
         space = 0.0
         margin = ZRect(0.0, 8.0, 0.0, -4.0)
         accessibilityLabel = text

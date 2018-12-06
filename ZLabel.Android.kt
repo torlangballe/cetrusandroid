@@ -57,7 +57,11 @@ open class ZLabel: TextView, ZView {
             this.font = font
         }
         this.setTypeface(this.font.typeface)
-        this.setTextSize(this.font.size.toFloat())
+        var s = this.font.size.toFloat()
+        if (ZIsTVBox()) {
+            s /= 2f
+        }
+        this.setTextSize(s)
         this.setLines(lines)
         this.text = text
         debugText = text

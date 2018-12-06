@@ -24,7 +24,7 @@ class ZConfirmStack: ZStackView {
 
     private fun createShape(name: String, strokeColor: ZColor, align: ZAlignment) : ZShapeView {
         val shape = ZShapeView(type = ZShapeView.ShapeType.circle, minSize = ZSize(64.0, 64.0))
-        shape.image = ZImage(named = name + ".png")
+        shape.image = ZImage.Named(name + ".png")
         shape.objectName = name
         shape.strokeColor = strokeColor
         shape.strokeWidth = 2.0

@@ -30,7 +30,7 @@ class ZFont {
 
     companion object {
         fun Nice(size: Double, style: Style = Style.normal): ZFont {
-            return ZFont(fontName = "Helvetica", style = style, pointsize = size)
+            return ZFont(fontName = "Helvetica", style = style, pointsize = size * ZScreen.SoftScale)
         }
 
         var appFont = Nice(20.0)

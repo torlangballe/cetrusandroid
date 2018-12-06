@@ -20,6 +20,7 @@ import android.support.v4.content.ContextCompat.getSystemService
 
 
 private fun getDefaultDisplayMetrics() : DisplayMetrics {
+
     return zMainActivityContext!!.getResources().getDisplayMetrics()
 }
 
@@ -70,8 +71,15 @@ class ZScreen {
                 return getDefaultDisplayRect()
             }
 
-        var Scale =
-                getDefaultDisplayMetrics().density.toDouble()
+        val Scale: Double
+            get() {
+                if (ZIsTVBox()) {
+                    return 1.0
+                }
+                return getDefaultDisplayMetrics().density.toDouble()
+            }
+
+        var SoftScale = 1.0
 
         val ActionBarHeight: Double
             get() {

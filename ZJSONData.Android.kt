@@ -6,18 +6,25 @@ package com.github.torlangballe.cetrusandroid
 //  Created by Tor Langballe on /11/10/18.
 //
 
-/*
-typealias ZJSONData  = ZData
+import kotlinx.serialization.*
+import kotlinx.serialization.json.JSON
+import java.lang.Exception
 
-data class Data(val a: Int, val b: Int)
+typealias ZJSON = JSON
 
-fun <T>ZJSONData.Encode(t:T) {
-    val data = Data(1, 2)
-    JSON.parse<Data>("{a:1,b:2}"))
-
+fun <T> ZData.Decode(serializer: KSerializer<T>): Pair<T, ZError?> {
+    val d = JSON.parse(serializer, GetString())
+    return Pair(d as T, null)
 }
 
-//fun <T>ZJSONData.Decode(target:)
-
-*/
+fun <T: Serializable> ZData.Companion.EncodeJson(serializer: KSerializer<T>, item:T) : ZData? {
+    try {
+//        var s = JSON.stringify(item.annotationClass.serializer())
+        var s = JSON.stringify(serializer, item)
+        return ZData(utfString = s)
+    } catch (e:Exception) {
+        ZDebug.Print("ZData.EncodeJson err:", e.localizedMessage)
+        return null
+    }
+}
 

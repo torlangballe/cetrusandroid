@@ -23,7 +23,7 @@ class ZTimeZone (val timezone:TimeZone = TimeZone.getDefault()) {
 
     val NiceName: String
         get() {
-            return timezone.getDisplayName()
+            return timezone.id
         }
     val HoursFromUTC: Double
         get() = timezone.rawOffset.toDouble() * 1000 * 3600
