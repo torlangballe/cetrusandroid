@@ -29,7 +29,6 @@ open class ZShapeView: ZContainerView, ZImageLoader {
     var value: Float = 0f
 
     constructor(type: ShapeType, minSize: ZSize) : super(name = "ZShapeView") {
-
         text = ZTextDraw()
         this.minSize = minSize
         this.type = type

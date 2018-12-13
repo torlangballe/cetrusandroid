@@ -1,10 +1,10 @@
-package com.github.torlangballe.cetrusandroid
-
 //
 //  ZJSONData.Android.kt
 //
 //  Created by Tor Langballe on /11/10/18.
 //
+
+package com.github.torlangballe.cetrusandroid
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JSON
@@ -12,19 +12,24 @@ import java.lang.Exception
 
 typealias ZJSON = JSON
 
-fun <T> ZData.Decode(serializer: KSerializer<T>): Pair<T, ZError?> {
-    val d = JSON.parse(serializer, GetString())
-    return Pair(d as T, null)
+inline fun <reified T, reified U> ZData.Decode(serializer: KSerializer<T>, t:U): Pair<U?, ZError?> {
+    try {
+//        val d = JSON.parse(T::class.serializer(), GetString())
+        val d = JSON.parse(serializer, GetString())
+        return Pair(d as U, null)
+    } catch (e:Exception) {
+        ZDebug.Print("ZData.Decode err:", e.localizedMessage)
+        return Pair(null, ZNewError(e.localizedMessage))
+    }
 }
 
-fun <T: Serializable> ZData.Companion.EncodeJson(serializer: KSerializer<T>, item:T) : ZData? {
+inline fun <reified T> ZData.Companion.EncodeJson(serializer: KSerializer<T>, item:T) : Pair<ZData?, ZError?> {
     try {
-//        var s = JSON.stringify(item.annotationClass.serializer())
         var s = JSON.stringify(serializer, item)
-        return ZData(utfString = s)
+        return Pair(ZData(utfString = s), null)
     } catch (e:Exception) {
         ZDebug.Print("ZData.EncodeJson err:", e.localizedMessage)
-        return null
+        return Pair(null, ZNewError(e.localizedMessage))
     }
 }
 

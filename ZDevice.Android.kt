@@ -77,7 +77,12 @@ data class ZDevice (val _dummy: Int = 0) {
         val TimeZone: ZTimeZone
             get() = ZTimeZone.DeviceZone
 
-        val DeviceType: Triple<String, Int, String>
+        val DeviceType: String
+            get() {
+                return Build.DEVICE
+            }
+
+        val DeviceCodeNumbered: Triple<String, Int, String>
             get() {
                 return Triple(Build.DEVICE, 1, "")
             }

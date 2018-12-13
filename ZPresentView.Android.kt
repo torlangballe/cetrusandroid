@@ -92,10 +92,10 @@ fun ZPopTopView(namedView: String = "", animated: Boolean = true, overrideDurati
                 if (p.singleOrientation && !isPortrait) {
                     zMainActivity!!.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
                     ZScreen.orientation = ZScreenLayout.portrait
+                    return
                 }
-            } else {
-                zMainActivity!!.setContentView(p.view!!.View())
             }
+            zMainActivity!!.setContentView(p.view!!.View())
         }
     }
 }

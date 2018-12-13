@@ -5,13 +5,15 @@ import android.view.ViewGroup
 import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
 import android.support.v4.view.animation.FastOutSlowInInterpolator
-
+import android.view.animation.AnimationSet
 
 //
 //  ZAnimation.swift
 //
 //  Created by Tor Langballe on /20/08/18.
 //
+
+var animationObjects = mutableMapOf<ZNativeView, ObjectAnimator>()
 
 class ZAnimation {
     companion object {
@@ -27,6 +29,14 @@ class ZAnimation {
         }
 
         fun RemoveAllFromView(view: ZNativeView) {
+            ZDebug.Print("ZAni.Remove:", view)
+            val a = animationObjects[view]
+            if (a != null) {
+                a.setCurrentPlayTime(0)
+                a.cancel()
+                a.end()
+                a.removeAllListeners()
+            }
             view.clearAnimation()
         }
 
@@ -44,6 +54,7 @@ class ZAnimation {
             scaleDown.repeatMode = ObjectAnimator.REVERSE
             scaleDown.setInterpolator(FastOutSlowInInterpolator())
             scaleDown.start()
+            animationObjects.set(view, scaleDown)
         }
 
         fun ScaleView(view: ZNativeView, scaleTo: Double, duration: Double) {

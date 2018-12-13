@@ -80,9 +80,9 @@ data class ZUrlRequestReturnMessage(
 class ZUrlSession {
     // transactions are debugging list for listing all transactions
     companion object {
-        fun Send(request: ZUrlRequest, onMain: Boolean = true, async: Boolean = true, sessionCount: Int = -1, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, data: ZData?, error: ZError?, sessionCount: Int) -> Unit) : ZURLSessionTask? {
+        fun Send(request: ZUrlRequest, onMain: Boolean = true, async: Boolean = true, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, data: ZData?, error: ZError?) -> Unit) : ZURLSessionTask? {
             if (!async) {
-                SendSync(request, sessionCount = sessionCount, makeStatusCodeError = makeStatusCodeError, done = done)
+                SendSync(request, makeStatusCodeError = makeStatusCodeError, done = done)
                 return null
             }
             var urlConnection: HttpURLConnection? = null
@@ -93,16 +93,16 @@ class ZUrlSession {
                 val bin = BufferedInputStream(urlConnection.inputStream)
                 var data = ZData()
                 bin.read(data.data)
-                done(ZUrlResponse(), data, null, sessionCount)
+                done(ZUrlResponse(), data, null)
             }
             catch (ex: MalformedURLException) {
-                done(ZUrlResponse(), null, ZNewError("MalformedURLException"), sessionCount)
+                done(ZUrlResponse(), null, ZNewError("MalformedURLException"))
             }
             catch (ex: IOException) {
-                done(ZUrlResponse(), null, ZNewError("IOException"), sessionCount)
+                done(ZUrlResponse(), null, ZNewError("IOException"))
             }
             catch (ex: Exception) {
-                done(ZUrlResponse(), null, ZNewError("Exception"), sessionCount)
+                done(ZUrlResponse(), null, ZNewError("Exception"))
             }
             finally {
                 urlConnection?.disconnect()
@@ -115,7 +115,7 @@ class ZUrlSession {
             return ZURLSessionTask()
         }
 
-        fun SendSync(request: ZUrlRequest, timeoutSecs: Double = 11.0, sessionCount: Int = -1, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, data: ZData?, error: ZError?, sessionCount: Int) -> Unit) {
+        fun SendSync(request: ZUrlRequest, timeoutSecs: Double = 11.0, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, data: ZData?, error: ZError?) -> Unit) {
             ZNOTIMPLEMENTED()
         }
 
