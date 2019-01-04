@@ -35,9 +35,6 @@ fun ZPresentView(view: ZView, duration: Double = 0.4, transition: ZTransitionTyp
         a.useableArea = !makeFull
         a.singleOrientation = singleOrientation ?: vc.singleOrientation
         a.view = vc
-        stack.append(a)
-        view.SetAsFullView(useableArea = !makeFull)
-        view.ArrangeChildren()
         if (deleteOld) {
             if (oldView != null) {
                 zRemoveNativeViewFromParent(oldView, detachFromContainer = false)
@@ -51,6 +48,9 @@ fun ZPresentView(view: ZView, duration: Double = 0.4, transition: ZTransitionTyp
         } else {
             setContentView(view, a, done)
         }
+        stack.append(a)
+        view.SetAsFullView(useableArea = !makeFull)
+        view.ArrangeChildren()
     }
     // handle delete old and call HandleClosing on it...
 }
@@ -109,7 +109,7 @@ fun zHandleOrientationChanged() {
         ZScreen.orientation = ZScreenLayout.landscapeLeft
     }
     ZPopTopView(changeOrientation = false)
-    ZPresentView(s.view!!, makeFull = !s.useableArea, deleteOld = true, lightContent = s.lightContent, singleOrientation = s.singleOrientation)
+    ZPresentView(s.view!!, makeFull = !s.useableArea, deleteOld = false, lightContent = s.lightContent, singleOrientation = s.singleOrientation)
     val cv = s.view as ZContainerView
     if (cv != null) {
         cv.HandleRotation()

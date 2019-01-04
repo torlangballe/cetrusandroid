@@ -39,8 +39,8 @@ open class ZStackView: ZContainerView {
                 val tot = getCellFitSizeInTotal(total = total, cell = c1)
                 val cv = c1.view as? ZView
                 var fs = ZSize(50, 50)
-                if ((cv != null)) {
-                    fs = cv!!.CalculateSize(tot)
+                if (cv != null) {
+                    fs = cv.CalculateSize(tot)
                 }
                 //                var fs = zConvertViewSizeThatFitstToZSize(c1.view!, sizeIn:tot)
                 var m = c1.margin
@@ -205,7 +205,7 @@ open class ZStackView: ZContainerView {
                 }
             }
         }
-        //        HandleAfterLayout()
+        HandleAfterLayout()
     }
 }
 

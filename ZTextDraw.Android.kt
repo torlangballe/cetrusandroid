@@ -13,7 +13,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import kotlin.math.ceil
 import android.text.Layout
-
+import android.text.TextUtils
 
 
 enum class ZTextDrawType { fill, stroke, clip }
@@ -195,13 +195,20 @@ data class ZTextDraw(
             }
             builder.setAlignment(a)
             val j = when(wrap) {
-                ZTextWrapType.word -> Layout.JUSTIFICATION_MODE_INTER_WORD
+                ZTextWrapType.word, ZTextWrapType.default -> Layout.JUSTIFICATION_MODE_INTER_WORD
                 else -> Layout.JUSTIFICATION_MODE_NONE
             }
             builder.setJustificationMode(j)
 //            builder.setLineSpacing(spacingMultiplier, spacingAddition)
 //            builder.setIncludePad(includePadding)
-//            builder.setMaxLines(5)
+            if (maxLines > 0) {
+                builder.setMaxLines(maxLines)
+            }
+            when(wrap) {
+                ZTextWrapType.middleTruncate -> builder.setEllipsize(TextUtils.TruncateAt.MIDDLE)
+                ZTextWrapType.headTruncate -> builder.setEllipsize(TextUtils.TruncateAt.START)
+                ZTextWrapType.tailTruncate -> builder.setEllipsize(TextUtils.TruncateAt.END)
+            }
             canvas.PushState()
             canvas.context.translate(r.Min.x.toFloat(), r.Min.y.toFloat())
             builder.build().draw(canvas.context)

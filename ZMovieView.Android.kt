@@ -9,6 +9,7 @@ package com.github.torlangballe.cetrusandroid
 
 import android.media.MediaPlayer
 import android.net.Uri
+import android.widget.MediaController
 import android.widget.VideoView
 
 class ZMovieView: VideoView, ZView {
@@ -89,7 +90,9 @@ class ZMovieView: VideoView, ZView {
     fun SetUrl(url: String) {
         val uri = Uri.parse(url)
         super.setVideoURI(uri)
-//        Play()
+//        setMediaController(MediaController(zMainActivityContext!!))
+        requestFocus();
+        Play()
 
     }
 

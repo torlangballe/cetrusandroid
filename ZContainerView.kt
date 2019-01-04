@@ -54,7 +54,7 @@ open class ZContainerView: ZCustomView {
     fun SetAsFullView(useableArea: Boolean) {
         ZViewSetRect(this, rect = ZScreen.Main)
         minSize = ZScreen.Main.size
-        if (!ZIsTVBox()) {
+        if (!ZIsTVBox() && ZScreen.IsPortrait) {
             val h = ZScreen.StatusBarHeight
             var r = Rect
             if (h > 20 && !ZScreen.HasNotch()) {
@@ -252,5 +252,6 @@ open class ZContainerView: ZCustomView {
     }
 
     open fun HandleBackButton() {// only android has hardware back button...
+        ZPopTopView()
     }
 }

@@ -63,6 +63,11 @@ open class ZApp {
         mainZApp = this
     }
 
+    fun Quit() {
+        zMainActivity?.finishAffinity()
+        System.exit(0)
+    }
+
     fun setVersions() {
         // this needs to be called by inheriting class, or strange stuff happens if called by ZApp
         val (_, ver, _) = Version
