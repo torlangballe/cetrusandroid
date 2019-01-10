@@ -266,7 +266,7 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
             val scale = ZScreen.Scale
             val c = ZCanvas(canvas)
             c.PushState()
-            val cs = ZSize(canvas.width, canvas.height) / scale
+//            val cs = ZSize(canvas.width, canvas.height) / scale
             canvas.scale(scale.toFloat(), scale.toFloat())
             val r = LocalRect
             if (xCornerRadius != 0.0 || xStrokeWidth != 0.0 || xBgColor.tileImage != null) {

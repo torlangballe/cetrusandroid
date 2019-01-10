@@ -11,6 +11,7 @@ import android.graphics.RectF
 import android.graphics.Shader.TileMode
 import android.graphics.LinearGradient
 import android.graphics.Shader
+import android.support.annotation.ColorInt
 
 typealias ZMatrix = Matrix
 
@@ -110,19 +111,22 @@ data class ZCanvas(var context: Canvas) {
         return ZAndroidRectFToZRect(rf)
     }
 
-    fun StrokePath(path: ZPath, width: Double, type: ZPath.LineType = ZPath.LineType.round) {
+    private fun strokePath(path: ZPath, width: Double, type: ZPath.LineType = ZPath.LineType.round, strokeColor: Int) {
         var tempPaint = paint
-
         tempPaint.style = Paint.Style.STROKE
         tempPaint.strokeCap = Paint.Cap.ROUND
         tempPaint.strokeWidth = width.toFloat()
-
+        tempPaint.color = strokeColor
         context.drawPath(path.path, tempPaint)
+    }
+
+    fun StrokePath(path: ZPath, width: Double, type: ZPath.LineType = ZPath.LineType.round) {
+        strokePath(path, width, type, paint.color)
     }
 
     fun DrawPath(path: ZPath, strokeColor: ZColor, width: Double, type: ZPath.LineType = ZPath.LineType.round, eofill: Boolean = false) {
         FillPath(path)
-        StrokePath(path, width, type)
+        strokePath(path, width, type, strokeColor.rawColor.toArgb())
     }
 
     fun DrawImage(image: ZImage, destRect: ZRect, align: ZAlignment = ZAlignment.None, opacity: Float = 1f, blendMode: ZCanvasBlendMode = ZCanvasBlendMode.normal, corner:Double? = null, margin: ZSize = ZSize()) : ZRect {

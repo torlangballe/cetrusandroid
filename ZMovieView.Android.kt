@@ -89,18 +89,18 @@ class ZMovieView: VideoView, ZView {
 
     fun SetUrl(url: String) {
         val uri = Uri.parse(url)
-        super.setVideoURI(uri)
-//        setMediaController(MediaController(zMainActivityContext!!))
-        requestFocus();
+        setVideoURI(uri)
+//        setMediaController(MediaController(zMainActivityContext!!)) // this seems to crash closing/rotating view?
+//        requestFocus()
+//        postInvalidateDelayed(100)
         Play()
-
     }
 
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        super.onLayout(changed, left, top, right, bottom)
-        holder.setSizeFromLayout()
-    }
-
+//    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+//        super.onLayout(changed, left, top, right, bottom)
+//        holder.setSizeFromLayout()
+//    }
+//
     fun HandleAfterLayout() {
 //        playerLayer?.frame = this.bounds
     }

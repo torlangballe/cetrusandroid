@@ -108,6 +108,7 @@ open class ZCustomView: ViewGroup, ZView, View.OnFocusChangeListener, GestureDet
         isClickable = true
 //        setOnKeyListener(this)
         onFocusChangeListener = this
+//        setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
     override fun CalculateSize(total: ZSize): ZSize =

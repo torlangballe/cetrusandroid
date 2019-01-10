@@ -26,7 +26,7 @@ class ZSlider: SeekBar, ZView, ZControl {
             return progress.toFloat() / 1000f
         }
         set(v) {
-            progress = (value * 1000f).toInt()
+            progress = (v * 1000f).toInt()
         }
 
     var handleValueChanged: (() -> Unit)? = null
@@ -43,8 +43,10 @@ class ZSlider: SeekBar, ZView, ZControl {
         }
         this.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                value = progress.toFloat() / 1000f
-                handleValueChanged?.invoke()
+                if (fromUser) { // we don't do this if we set it ourself, as we can get into a loop then
+                    value = progress.toFloat() / 1000f
+                    handleValueChanged?.invoke()
+                }
             }
             override fun onStartTrackingTouch(seekBar: SeekBar) { }
             override fun onStopTrackingTouch(seekBar: SeekBar) { }

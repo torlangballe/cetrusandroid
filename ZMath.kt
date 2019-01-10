@@ -15,16 +15,16 @@ data class ZMath (val _dummy: Int = 0) {
         val MetersToDegrees = 1 / DegreesToMeters
 
         fun RadToDeg(rad: Double) : Double =
-            rad * 180 / PI
+                rad * 180 / PI
 
         fun DegToRad(deg: Double) : Double =
-            deg * PI / 180
+                deg * PI / 180
 
         fun AngleDegToPos(deg: Double) : ZPos =
-            ZPos(sin(DegToRad(deg)), -cos(DegToRad(deg)))
+                ZPos(sin(DegToRad(deg)), -cos(DegToRad(deg)))
 
         fun PosToAngleDeg(pos: ZPos) : Double =
-            RadToDeg(ArcTanXYToRad(pos))
+                RadToDeg(ArcTanXYToRad(pos))
 
         fun GetDistanceFromLongLatInMeters(pos1: ZPos, pos2: ZPos) : Double {
             val R = 6371.0
@@ -37,20 +37,26 @@ data class ZMath (val _dummy: Int = 0) {
         }
 
         fun Fraction(v: Double) : Double =
-            v - Floor(v)
+                v - Floor(v)
 
         fun Floor(v: Double) : Double =
-            floor(v)
+                floor(v)
 
         fun Ceil(v: Double) : Double =
-            ceil(v)
+                ceil(v)
 
         fun Log10(d: Double) : Double =
-            log10(d)
+                log10(d)
 
-        fun GetNiceIncsOf(d: Double, incCount: Int) : Double {
+        fun GetNiceIncsOf(d: Double, incCount: Int, isMemory: Boolean) : Double {
             val l = floor(log10(d))
             var n = Pow(10.0, l)
+            if (isMemory) {
+                n = Pow(1024.0, ceil(l / 3.0))
+                while (d / n > incCount.toDouble()) {
+                    n = n * 2.0
+                }
+            }
             while (d / n < incCount.toDouble()) {
                 n = n / 2.0
             }
@@ -83,6 +89,6 @@ data class ZMath (val _dummy: Int = 0) {
         }
 
         fun MixedArrayValueAtT(array: MutableList<Double>, t: Double) : Double =
-            MixedArrayValueAtIndex(array, index = ((array.size).toDouble() - 1) * t)
+                MixedArrayValueAtIndex(array, index = ((array.size).toDouble() - 1) * t)
     }
 }
