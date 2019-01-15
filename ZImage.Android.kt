@@ -113,7 +113,11 @@ class ZImage(var bitmap:Bitmap? = null) {
         }
         fun FromFile(file: ZFileUrl) : ZImage? {
             if (file.Extension == "ppm") {
-                return imageFromPpm(file)
+                try {
+                    return imageFromPpm(file)
+                } catch (e: java.lang.OutOfMemoryError) {
+                    ZDebug.Print("AnalyzeThumbnail get error:", e.localizedMessage)
+                }
             }
             return null
         }

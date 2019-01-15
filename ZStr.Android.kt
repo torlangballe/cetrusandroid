@@ -370,40 +370,27 @@ data class ZStr(val dummy:Int = 0) {
 */
 
         fun NiceDouble(d: Double, maxSig: Int = 8, separator: String = ",") : String {
+            val str = ZStr.Format("%f", d)
+            var sfract = ZStr.TailUntil(str, sep = ".")
+            sfract = ZStr.Head(sfract, chars = maxSig)
             var n = d.toLong()
-            val f = ZMath.Fraction(d)
-            val format = "%.${maxSig}f"
-            var fstr = ZStr.Format(format, f)
-            if (fstr.contains(".")) {
-                while (true) {
-                    val s = ZStr.Tail(fstr)
-                    if (s == "0") {
-                        fstr = fstr.removedLast()
-                    } else if (s == ".") {
-                        fstr = fstr.removedLast()
-                        break
-                    } else {
-                        break
-                    }
-                }
-            }
-            if (fstr == "0") {
-                fstr = ""
-            }
-            var str = ""
+            var sint = ""
             while (true) {
                 if (n / 1000 > 0) {
-                    str = ZStr.Format("%03d", n % 1000) + str
+                    sint = ZStr.Format("%03ld", n % 1000) + sint
                 } else {
-                    str = "${n % 1000}" + str
+                    sint = "${n % 1000}" + sint
                 }
                 n /= 1000
                 if (n == 0.toLong()) {
                     break
                 }
-                str = separator + str
+                sint = separator + sint
             }
-            return str + fstr
+            if (!sfract.isEmpty()) {
+                sfract = "." + sfract
+            }
+            return sint + sfract
         }
 
         fun SplitLines(str: String, skipEmpty: Boolean = true) : List<String> {

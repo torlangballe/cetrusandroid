@@ -305,9 +305,9 @@ data class ZWords (val _dummy: Int = 0) {
                 "en" -> return ZTS("English")
                 // name of english language
                 "de" -> return ZTS("German")
-                in // name of german language
+                // name of german language
                 "ja", "jp" -> return ZTS("Japanese")
-                in // name of english language
+                // name of english language
                 "no", "nb", "nn" -> return ZTS("Norwegian")
                 // name of norwegian language
                 "us" -> return ZTS("American")
@@ -321,7 +321,7 @@ data class ZWords (val _dummy: Int = 0) {
                 "ch" -> return ZTS("Swiss")
                 // name of swiss language/person
                 "in" -> return ZTS("Indian")
-                in // name of indian language/person
+                // name of indian language/person
                 "gb", "uk" -> return ZTS("British")
                 // name of british language/person
                 "za" -> return ZTS("South African")
@@ -387,27 +387,28 @@ data class ZWords (val _dummy: Int = 0) {
             return distance + " " + word
         }
 
-        fun MemorySizeAsString(b: Long, langCode: String = "", maxSignificant: Int = 3) : String {
+        fun MemorySizeAsString(b: Long, langCode: String = "", maxSignificant: Int = 3, isBits: Boolean = false) : String {
             val kiloByte = 1024.0
             val megaByte = kiloByte * 1024
             val gigaByte = megaByte * 1024
             val terraByte = gigaByte * 1024
-            var word = "TB"
+            var word = "T"
             var n = b.toDouble() / terraByte
             val d = b.toDouble()
             if (d < kiloByte) {
-                word = "B"
+                word = ""
                 n = b.toDouble()
             } else if (d < megaByte) {
-                word = "KB"
+                word = "K"
                 n = b.toDouble() / kiloByte
             } else if (d < gigaByte) {
-                word = "MB"
+                word = "M"
                 n = b.toDouble() / megaByte
             } else if (d < terraByte) {
-                word = "GB"
+                word = "G"
                 n = b.toDouble() / gigaByte
             }
+            word += (if (isBits) "b" else "B")
             val str = ZStr.NiceDouble(n, maxSig = maxSignificant) + " " + word
             return str
         }
@@ -419,15 +420,15 @@ data class ZWords (val _dummy: Int = 0) {
                 // General name for north as in north-east wind etc
             }
             if (alignment and ZAlignment.Bottom) {
-                str = ZStr.ConcatNonEmpty(sep = separator, items = listOf(str, ZTS("South", langCode = langCode)))
+                str = ZStr.ConcatNonEmpty(sep = separator, items = mutableListOf(str, ZTS("South", langCode = langCode)))
                 // General name for south as in south-east wind etc
             }
             if (alignment and ZAlignment.Left) {
-                str = ZStr.ConcatNonEmpty(sep = separator, items = listOf(str, ZTS("West", langCode = langCode)))
+                str = ZStr.ConcatNonEmpty(sep = separator, items = mutableListOf(str, ZTS("West", langCode = langCode)))
                 // General name for west as in north-west wind etc
             }
             if (alignment and ZAlignment.Right) {
-                str = ZStr.ConcatNonEmpty(sep = separator, items = listOf(str, ZTS("East", langCode = langCode)))
+                str = ZStr.ConcatNonEmpty(sep = separator, items = mutableListOf(str, ZTS("East", langCode = langCode)))
                 // General name for north as in north-east wind etc
             }
             return str

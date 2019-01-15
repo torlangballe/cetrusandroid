@@ -118,3 +118,24 @@ val ZTimeHTTPHeaderDateFormat = "EEEE, dd LLL yyyy HH:mm:ss zzz"
 val ZTimeMinute = 60.0
 val ZTimeHour = 3600.0
 val ZTimeDay = 86400.0
+
+class ZDeltaTimeGetter {
+    var lastGetTime:ZTime = ZTimeNull
+    var lastGetValue:Double? = null
+
+    fun Get(get:() -> Double) : Pair<Double, Double> {
+        var v = get()
+        var delta = 0.0
+        var interval = 0.0
+        val t = ZTime.Now()
+        if (lastGetValue != null) {
+            delta = v - lastGetValue!!
+            interval = t - lastGetTime
+        }
+        lastGetValue = v
+        lastGetTime = ZTime.Now()
+
+        return Pair(delta, interval)
+    }
+}
+
