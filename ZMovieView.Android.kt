@@ -19,6 +19,7 @@ class ZMovieView: VideoView, ZView {
     var seeking = false
     var handlePlayPause: ((play: Boolean) -> Unit)? = null
     var minSize = ZSize(100.0, 100.0)
+    var handleError: ((error:ZError)->Unit)? = null
 
     override fun View() : ZNativeView = this
 
@@ -26,19 +27,21 @@ class ZMovieView: VideoView, ZView {
         this.setOnErrorListener(object : MediaPlayer.OnErrorListener {
             override fun onError(mp:MediaPlayer, what:Int, extra:Int) : Boolean {
                 //Return true to get rid of auto-generated alerts
-                var err = ""
+                var serr = ""
                 if (what == MediaPlayer.MEDIA_ERROR_UNKNOWN)
-                    err = "unknown"
+                    serr = "unknown"
                 if (what == MediaPlayer.MEDIA_ERROR_SERVER_DIED)
-                    err = "server died"
+                    serr = "server died"
                 if (extra == MediaPlayer.MEDIA_ERROR_IO)
-                    err += ", io"
+                    serr += ", io"
                 if (extra == MediaPlayer.MEDIA_ERROR_MALFORMED)
-                    err += ", malformed"
+                    serr += ", malformed"
                 if (extra == MediaPlayer.MEDIA_ERROR_UNSUPPORTED)
-                    err += ", unsupported"
+                    serr += ", unsupported"
                 if (extra == MediaPlayer.MEDIA_ERROR_TIMED_OUT)
-                    err += ", timed-out"
+                    serr += ", timed-out"
+                val error = ZNewError(serr)
+                handleError?.invoke(error)
                 return true
             }
         })

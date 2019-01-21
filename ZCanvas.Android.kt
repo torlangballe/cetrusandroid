@@ -142,7 +142,7 @@ data class ZCanvas(var context: Canvas) {
             ClipPath(path)
         }
         val r = ZRectToAndroidRectF(vdestRect)
-        var p = Paint()
+        var p = makePaint()
         p.alpha = (opacity * 255).toInt()
         if (!image.tint.undefined) {
             p.colorFilter  = LightingColorFilter(image.tint.color.toArgb(), 0x00000000)
@@ -152,6 +152,7 @@ data class ZCanvas(var context: Canvas) {
             image.ninepatch!!.draw(context, r)
         } else if (image.bitmap != null) {
             var paint = p
+            paint.setFilterBitmap(true)
             context.drawBitmap(image.bitmap, null, r, paint)
         }
         if (corner != null) {

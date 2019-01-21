@@ -20,8 +20,12 @@ class ZUrlRequest {
     var httpBody = byteArrayOf(0)
 
     fun SetUrl(url: String) {
-        val u = URL(url);
-        this.url = u
+        try {
+            val u = URL(url);
+            this.url = u
+        } catch (e:java.lang.Exception) {
+            ZDebug.Print("ZUrlRequest SetUrl err:", e.localizedMessage)
+        }
     }
 
     fun SetType(type: ZUrlRequestType) {
@@ -77,6 +81,20 @@ data class ZUrlRequestReturnMessage(
         var code: Int? = null) {
 }
 
+fun doDone(onMain: Boolean, data: ZData?, err: String?, done: (response: ZUrlResponse?, data: ZData?, error: ZError?) -> Unit) {
+    var error: ZError? = null
+    if (err != null) {
+        error = ZNewError(err)
+    }
+    if (!onMain) {
+        done(ZUrlResponse(), data, error)
+    } else {
+        ZMainQue.sync {
+            done(ZUrlResponse(), data, error)
+        }
+    }
+}
+
 class ZUrlSession {
     // transactions are debugging list for listing all transactions
     companion object {
@@ -85,27 +103,25 @@ class ZUrlSession {
                 SendSync(request, makeStatusCodeError = makeStatusCodeError, done = done)
                 return null
             }
-            var urlConnection: HttpURLConnection? = null
-            try {
-                val url = URL("http://www.android.com/")
-                urlConnection = url.openConnection() as HttpURLConnection
-                urlConnection.requestMethod = request.httpMethod
-                val bin = BufferedInputStream(urlConnection.inputStream)
-                var data = ZData()
-                bin.read(data.data)
-                done(ZUrlResponse(), data, null)
-            }
-            catch (ex: MalformedURLException) {
-                done(ZUrlResponse(), null, ZNewError("MalformedURLException"))
-            }
-            catch (ex: IOException) {
-                done(ZUrlResponse(), null, ZNewError("IOException"))
-            }
-            catch (ex: Exception) {
-                done(ZUrlResponse(), null, ZNewError("Exception"))
-            }
-            finally {
-                urlConnection?.disconnect()
+            ZGetBackgroundQue().async {
+                var urlConnection: HttpURLConnection? = null
+                try {
+                    urlConnection = request.url!!.openConnection() as HttpURLConnection
+                    urlConnection.requestMethod = request.httpMethod
+                    val bin = BufferedInputStream(urlConnection.inputStream)
+                    val ba = bin.readBytes()
+                    val data = ZData(data = ba)
+//                    bin.read(data.data)
+                    doDone(onMain, data, null, done)
+                } catch (ex: MalformedURLException) {
+                    doDone(onMain, null, "MalformedURLException: " + ex.localizedMessage, done)
+                } catch (ex: IOException) {
+                    doDone(onMain, null, "IOException: " + ex.localizedMessage, done)
+                } catch (ex: Exception) {
+                    doDone(onMain, null, "Exception: " + ex.localizedMessage, done)
+                } finally {
+                    urlConnection?.disconnect()
+                }
             }
             return ZURLSessionTask()
         }

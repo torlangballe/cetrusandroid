@@ -10,6 +10,7 @@ package com.github.torlangballe.cetrusandroid
 import android.app.UiModeManager
 import android.content.Context.UI_MODE_SERVICE
 import android.content.res.Configuration
+import android.os.Build
 import java.lang.Exception
 import java.util.Comparator
 
@@ -17,9 +18,15 @@ typealias AnyHashable = String
 
 typealias ZAnyObject = Any
 
-fun ZIsIOS() : Boolean {
+fun ZIsApple() : Boolean {
     return false
 }
+
+fun ZIsSimulator() : Boolean {
+    return Build.HARDWARE.contains("goldfish")
+}
+
+fun ZIsIOS() = false
 
 fun ZIsTVBox() : Boolean {
     val uiModeManager = zMainActivity!!.getSystemService(UI_MODE_SERVICE) as? UiModeManager

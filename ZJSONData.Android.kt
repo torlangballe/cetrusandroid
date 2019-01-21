@@ -15,7 +15,7 @@ typealias ZJSON = JSON
 inline fun <reified T, reified U> ZData.Decode(serializer: KSerializer<T>, t:U): Pair<U?, ZError?> {
     try {
 //        val d = JSON.parse(T::class.serializer(), GetString())
-        val d = JSON.parse(serializer, GetString())
+        val d = JSON(strictMode = false).parse(serializer, GetString()) // JSON.nonstrict
         return Pair(d as U, null)
     } catch (e:Exception) {
         ZDebug.Print("ZData.Decode err:", e.localizedMessage)

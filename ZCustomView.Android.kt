@@ -6,16 +6,13 @@
 package com.github.torlangballe.cetrusandroid
 
 import android.graphics.Canvas
+import android.graphics.Rect
 import android.view.*
 import android.view.KeyEvent.KEYCODE_DPAD_RIGHT
 import android.view.KeyEvent.KEYCODE_DPAD_LEFT
 import android.view.KeyEvent.KEYCODE_BUTTON_A
 import android.view.KeyEvent.KEYCODE_DPAD_CENTER
 import android.view.KeyEvent.KEYCODE_ENTER
-
-
-
-
 
 
 interface ZCustomViewDelegate {
@@ -179,7 +176,6 @@ open class ZCustomView: ViewGroup, ZView, View.OnFocusChangeListener, GestureDet
     }
 
     override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
         if (canvas != null) {
             super.onDraw(canvas)
             val scale = ZScreen.Scale

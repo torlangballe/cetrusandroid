@@ -7,16 +7,9 @@
 
 package com.github.torlangballe.cetrusandroid
 
-import android.R.attr.debuggable
-import android.app.ActivityManager
-import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.support.v4.content.PermissionChecker.checkCallingOrSelfPermission
-import android.support.v4.content.ContextCompat.getSystemService
-
-
 
 open class ZDebug(var dummy:Int = 0) {
     companion object {
@@ -38,9 +31,9 @@ open class ZDebug(var dummy:Int = 0) {
             print(str)
         }
 
-        fun IsRelease(): Boolean =
-        // not implemented yet!
-                false
+        fun IsRelease(): Boolean {
+            return (zMainActivityContext!!.getApplicationInfo().flags and ApplicationInfo.FLAG_DEBUGGABLE) === 0
+        }
 
         fun IsMinIOS11(): Boolean = false
 

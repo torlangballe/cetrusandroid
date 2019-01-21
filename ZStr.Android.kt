@@ -377,7 +377,7 @@ data class ZStr(val dummy:Int = 0) {
             var sint = ""
             while (true) {
                 if (n / 1000 > 0) {
-                    sint = ZStr.Format("%03ld", n % 1000) + sint
+                    sint = ZStr.Format("%03d", n % 1000) + sint
                 } else {
                     sint = "${n % 1000}" + sint
                 }

@@ -8,14 +8,23 @@ package com.github.torlangballe.cetrusandroid
 
 import android.graphics.Typeface
 
+private fun getNativeStyle(style: ZFont.Style) : Int {
+    return when (style) {
+        ZFont.Style.bold -> Typeface.BOLD
+        ZFont.Style.italic -> Typeface.ITALIC
+        ZFont.Style.boldItalic -> Typeface.BOLD_ITALIC
+        else -> Typeface.NORMAL
+    }
+}
+
 private fun makeTypeface(fontName: String, style: ZFont.Style = ZFont.Style.normal) : Typeface {
-    val t = Typeface.create(fontName, Typeface.NORMAL)
+    val t = Typeface.create(fontName, getNativeStyle(style))
     return t
 }
 
 class ZFont {
     enum class Style(val rawValue: String) {
-        normal("normal"), bold("bold"), italic("italic");
+        normal("normal"), bold("bold"), italic("italic"), boldItalic("bold-italic");
         companion object : ZEnumCompanion<String, Style>(Style.values().associateBy(Style::rawValue))
     }
 

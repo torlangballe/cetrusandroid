@@ -79,13 +79,13 @@ class ZImage(var bitmap:Bitmap? = null) {
     var scale:Float = 1f
     var tint:ZColor = ZColor()
 
-    constructor(namedImage:String) :
-        this(namedImage(namedImage)) {
-            if (bitmap != null) {
-                scale = bitmap!!.density.toFloat()
-            }
-        }
-
+//    constructor(namedImage:String) :
+//        this(namedImage(namedImage)) {
+//            if (bitmap != null) {
+//                scale = bitmap!!.density.toFloat()
+//            }
+//        }
+//
     companion object {
         fun Named(name:String) : ZImage? {
             val bitmap = namedImage(name)

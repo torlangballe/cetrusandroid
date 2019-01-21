@@ -35,6 +35,7 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
     var drawHandler: ((rect: ZRect, canvas: ZCanvas) -> Unit)? = null // lateinit ?
     var margins = ZSize(0, 0)
     var spacing = 0.0
+    var focusedRow:Int? = null
 
     private var ladapter: listAdapter? = null
 
@@ -61,6 +62,7 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
             owner!!.HandleRowSelected(index)
             selectionIndex = index
         }
+        focusable = View.NOT_FOCUSABLE
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -138,6 +140,10 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
         smoothScrollToPosition(row)
     }
 
+    fun IsFocused(rowView:ZCustomView) : Boolean {
+        return rowView.isFocused
+    }
+
     fun ReloadData(row: Int? = null, animate: Boolean = false) {
         if (row != null) {
             updateRow(row!!)
@@ -185,11 +191,6 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
             }
         }
         return v as ZView
-    }
-
-    fun GetIndexFromRowView(view: ZView) : Int? {
-        ZNOTIMPLEMENTED()
-        return null
     }
 
     fun GetParentTableViewFromRow(child: ZContainerView) : ZTableView {
@@ -244,6 +245,7 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
 //    }
 //}
 //
+
 internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, val table: ZTableView) : BaseAdapter() {
     override fun getCount(): Int {
         val n = owner.TableViewGetRowCount()
@@ -274,6 +276,7 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
             }
             size.h = owner.TableViewGetHeightOfItem(index)
             var ov = owner.TableViewSetupCell(cellSize = size - ZSize(table.margins.w * 2.0, 0.0), index = index)
+            ov!!.canFocus = true
             var r = ZRect(size = size)
             var outView = ov
             if (!table.margins.IsNull() || table.spacing != 0.0) {
@@ -281,7 +284,7 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
                     size.h += table.margins.h
                 }
                 if (position != owner.TableViewGetRowCount() - 1) {
-                    size.h += table.spacing
+                    size.h += table.spacing * ZScreen.SoftScale
                 }
                 val container = ZCustomView("list.row.container")
                 zLayoutViewAndScale(container, r)
@@ -296,7 +299,7 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
             if (position == owner.TableViewGetRowCount() - 1) {
                 or.SetMaxY(or.Max.y - table.margins.h)
             } else {
-                or.size.h -= table.spacing
+                or.size.h -= table.spacing * ZScreen.SoftScale
             }
             zLayoutViewAndScale(ov!!, or)
             val cv = ov as? ZContainerView
@@ -305,6 +308,9 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
             }
             ov.minSize = or.size
 
+            ov!!.HandlePressedInPosFunc = { pos ->
+                owner.HandleRowSelected(index)
+            }
             return outView!!
 //        }
 //        return vi

@@ -167,7 +167,7 @@ data class ZTextDraw(
             } else if ((alignment and ZAlignment.Bottom)) {
                 r.Min.y = r.Max.y - ra.size.h - (font.lineHeight).toDouble() * 0.3
             } else {
-                r.Max.y = ra.pos.y - (font.lineHeight).toDouble() * 0.3
+                r.Min.y = ra.pos.y - (font.lineHeight).toDouble() * 0.2
             }
             r.Min.y += 1.0
 //            p = ZPos(r.Min.x, r.Min.y + font.size * 1.1)
