@@ -8,26 +8,21 @@ import java.net.InetAddress
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
+
 class ZIPAddress {
+    var ip4String = "127.0.0.1"
     var address: InetAddress? = null
-    fun GetString() : String {
-        if (address == null) {
-            return ""
-        }
-        return address!!.hostAddress!!
+
+    fun GetIp4String() : String =
+        ip4String
+
+    constructor(ip4String: String = "") {
+        this.ip4String = ip4String
     }
 }
 
 class ZInternet {
     companion object {
-        fun ResolveAddress(address: String, got: (a: ZIPAddress) -> Unit) {
-            ZGetBackgroundQue().async {
-                var ip = ZIPAddress()
-                ip.address = InetAddress.getByName(address)
-                got(ip)
-            }
-        }
-
         fun SendWithUDP(address: ZIPAddress, port: Int, data: ZData, done: (e: ZError?) -> Unit) {
             var ds: DatagramSocket? = null
             try {
@@ -44,6 +39,14 @@ class ZInternet {
             }
         }
 
+        fun ResolveAddress(ip4address: String, got: (a: ZIPAddress) -> Unit) {
+            ZGetBackgroundQue().async {
+                var ip = ZIPAddress(ip4String = ip4address)
+                ip.address = InetAddress.getByName(ip4address)
+                got(ip)
+            }
+        }
+
         fun GetNetworkTrafficBytes(processUid: Int? = null): Long {
             if (processUid != null) {
                 return TrafficStats.getUidRxBytes(processUid!!)
@@ -52,7 +55,7 @@ class ZInternet {
         }
 
         fun PingAddressForLatency(ipAddress: ZIPAddress): Double? {
-            val a = ipAddress.GetString()
+            val a = ipAddress.GetIp4String()
             val pingCommand = "/system/bin/ping -c 1 $a"
             var inputLine: String? = ""
             var avgRtt:Double? = null

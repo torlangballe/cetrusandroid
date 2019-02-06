@@ -11,11 +11,13 @@ data class ZFocus (val _dummy: Int = 0) {
         var color = ZColor(r = 0.5, g = 0.5, b = 1.0)
 
         fun Draw(canvas: ZCanvas, rect: ZRect, corner: Double = 7.0) {
-            var w = 4.0 * ZScreen.SoftScale
-            val r = rect.Expanded(-2.0 * ZScreen.SoftScale)
-            val path = ZPath(rect = r, corner = ZSize(corner, corner) * ZScreen.SoftScale)
-            canvas.SetColor(color)
-            canvas.StrokePath(path, width = w)
+            if (ZIsTVBox()) {
+                var w = 4.0 * ZScreen.SoftScale
+                val r = rect.Expanded(-2.0 * ZScreen.SoftScale)
+                val path = ZPath(rect = r, corner = ZSize(corner, corner) * ZScreen.SoftScale)
+                canvas.SetColor(color)
+                canvas.StrokePath(path, width = w)
+            }
         }
     }
 }

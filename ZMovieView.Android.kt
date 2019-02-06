@@ -9,7 +9,7 @@ package com.github.torlangballe.cetrusandroid
 
 import android.media.MediaPlayer
 import android.net.Uri
-import android.widget.MediaController
+import android.os.Process
 import android.widget.VideoView
 
 class ZMovieView: VideoView, ZView {
@@ -20,6 +20,8 @@ class ZMovieView: VideoView, ZView {
     var handlePlayPause: ((play: Boolean) -> Unit)? = null
     var minSize = ZSize(100.0, 100.0)
     var handleError: ((error:ZError)->Unit)? = null
+    val mediaUid = Process.myUid()
+    var trafficGetter = ZDeltaTimeGetter()
 
     override fun View() : ZNativeView = this
 
@@ -99,6 +101,16 @@ class ZMovieView: VideoView, ZView {
         Play()
     }
 
+    fun GetCurrentTransferBitrateInBps() : Double { // this is a bit of a hack on android as it's just traffic of entire app
+        val (traffic, interval) = trafficGetter.Get {
+            ZInternet.GetNetworkTrafficBytes(mediaUid).toDouble()
+        }
+        if (interval == 0.0) {
+            return 0.0
+        }
+        val bitrate = traffic * 8.0 / interval
+        return bitrate
+    }
 //    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
 //        super.onLayout(changed, left, top, right, bottom)
 //        holder.setSizeFromLayout()

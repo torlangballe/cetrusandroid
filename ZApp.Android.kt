@@ -134,10 +134,13 @@ open class ZActivity: Activity() {
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean { // seems crazy we do this globally and not on focused view. Is this right????
+        if (!ZIsTVBox()) {
+            return super.onKeyUp(keyCode, event)
+        }
         if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
             val focused = getCurrentFocus()
             if (focused != null) {
-                val cv = focused as ZCustomView
+                val cv = focused as? ZCustomView
                 if (cv != null) {
                     focused.HandlePressedInPosFunc?.invoke(ZPos(0.0, 0.0))
                 }

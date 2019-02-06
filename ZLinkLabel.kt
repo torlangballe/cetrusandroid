@@ -11,7 +11,7 @@ class ZLinkLabel: ZLabel {
     }
 
     fun SetUrl(url: String) {
-        this.touchInfo.handlePressedInPosFunc = { pos: ZPos ->
+        this.HandlePressedInPosFunc = { pos: ZPos ->
             mainZApp?.HandleOpenUrl(ZUrl(string = url))
         }
     }

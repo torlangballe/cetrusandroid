@@ -111,10 +111,10 @@ class ZSlider: SeekBar, ZView, ZControl {
         w.Show(true)
         val oldHandle = parent.touchInfo.handlePressedInPosFunc
 //        AddTarget(parent, forEventType = ZControlEventType.pressed)
-        parent.touchInfo.handlePressedInPosFunc = { pos  ->
+        parent.HandlePressedInPosFunc = { pos  ->
             done(this.value)
             parent.RemoveChild(w)
-            parent.touchInfo.handlePressedInPosFunc = oldHandle
+            parent.HandlePressedInPosFunc = oldHandle
         }
     ZAnimation.Do(duration = 0.5, animations = { w.SetAlpha(1.0) })
     }

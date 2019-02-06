@@ -1,6 +1,6 @@
 
 //
-//  ZDevice.swift
+//  ZDevice.Android.kt
 //
 //  Created by Tor Langballe on /24/11/15.
 //
@@ -32,9 +32,7 @@ import android.support.v4.content.ContextCompat.getSystemService
 import android.net.NetworkInfo
 import android.provider.Settings
 import android.provider.Settings.Secure
-
-
-
+import kotlinx.io.ByteBuffer
 
 data class ZDevice (val _dummy: Int = 0) {
     companion object {
@@ -174,7 +172,7 @@ data class ZDevice (val _dummy: Int = 0) {
             return wifiState
         }
 
-        fun GetIPv4Address(): String? {
+        fun GetIPv4Address(): String {
             try {
                 val interfaces = Collections.list(NetworkInterface.getNetworkInterfaces())
                 for (intf in interfaces) {
@@ -192,10 +190,10 @@ data class ZDevice (val _dummy: Int = 0) {
             } catch (e: SocketException) {
                 ZDebug.Print("GetIPv4Address err:", e)
             }
-            return null
+            return ""
         }
 
-        fun GetIPv6Address(): String? {
+        fun GetIPv6Address(): String {
             try {
                 val interfaces = Collections.list(NetworkInterface.getNetworkInterfaces())
                 for (intf in interfaces) {
@@ -214,11 +212,22 @@ data class ZDevice (val _dummy: Int = 0) {
             } catch (e: SocketException) {
                 ZDebug.Print("GetIPv6Address err:", e)
             }
-            return null
+            return ""
         }
 
-        fun GetLanMAC() : String? {
-            var macAddress:String? = null
+        private fun bytesToLong(bytes:ByteArray) : Long {
+            val buffer = ByteBuffer.allocate(Long.SIZE_BYTES)
+            buffer.put(bytes)
+            var add = Long.SIZE_BYTES - bytes.size
+            while (add > 0) {
+                buffer.put(0)
+                add--
+            }
+            buffer.flip() //need flip ?
+            return buffer.getLong()
+        }
+
+        fun GetLanMAC() : Long {
             try {
                 val allNetworkInterfaces = Collections.list(
                     NetworkInterface
@@ -228,26 +237,19 @@ data class ZDevice (val _dummy: Int = 0) {
                     if (!nif.name.equals("eth0", ignoreCase = true))
                         continue
 
-                    val macBytes = nif.hardwareAddress ?: return macAddress
-
-                    val res1 = StringBuilder()
-                    for (b in macBytes) {
-                        res1.append(String.format("%02X:", b))
+                    val macBytes = nif.hardwareAddress
+                    if (macBytes == null) {
+                        continue
                     }
-
-                    if (res1.length > 0) {
-                        res1.deleteCharAt(res1.length - 1)
-                    }
-                    macAddress = res1.toString()
+                    return bytesToLong(macBytes)
                 }
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
-            return macAddress
+            return 0
         }
 
-        fun GetWifiMAC(): String? {
-            var result:String? = null
+        fun GetWifiMAC(): Long {
             if (ZDebug.HasPermission(Manifest.permission.ACCESS_WIFI_STATE)) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     // Hardware ID are restricted in Android 6+
@@ -273,35 +275,23 @@ data class ZDevice (val _dummy: Int = 0) {
                             continue
                         }
 
-                        val buf = StringBuilder()
-                        for (b in addr) {
-                            buf.append(String.format("%02X:", b))
-                        }
-                        if (buf.length > 0) {
-                            buf.deleteCharAt(buf.length - 1)
-                        }
-                        val mac = buf.toString()
-                        val wifiInterfaceName = "wlan0"
-                        result = if (wifiInterfaceName == networkInterface.name) mac else result
+                        return bytesToLong(addr)
                     }
-                } else {
-                    val wm = zMainActivityContext!!.getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
-                    result = wm.connectionInfo.macAddress
                 }
             }
-            return result
+            return 0
         }
 
         enum class ZNetworkType { Unknown, WifiMax, CellularUnknown, Cellular2G, Cellular3G, Cellular4G, Cellular5G, CellularXG }
 
-        fun GetWifiLinkSpeed(): String? {
-            var result: String? = null
+        fun GetWifiLinkSpeed(): String {
+            var result: String = ""
             if (ZDebug.HasPermission(Manifest.permission.ACCESS_WIFI_STATE) && ZDebug.HasPermission(Manifest.permission.ACCESS_NETWORK_STATE)) {
                 val cm = zMainActivityContext!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 if (cm != null) {
                     val networkInfo = cm.activeNetworkInfo
                     if (networkInfo == null) {
-                        result = null
+                        result = ""
                     }
 
                     if (networkInfo != null && networkInfo.isConnected) {

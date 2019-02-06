@@ -308,8 +308,10 @@ internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, 
             }
             ov.minSize = or.size
 
-            ov!!.HandlePressedInPosFunc = { pos ->
-                owner.HandleRowSelected(index)
+            if (ZIsTVBox()) {
+                ov!!.HandlePressedInPosFunc = { pos ->
+                    owner.HandleRowSelected(index)
+                }
             }
             return outView!!
 //        }

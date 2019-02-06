@@ -34,6 +34,11 @@ class ZTime (val instant: Instant = Instant.now()) {
             return m.toDouble() / 1000
         }
 
+    val SecsSinceUnixEpoc: Double
+        get() {
+            return SecsSinceEpoc
+        }
+
     companion object {
         fun Now() = ZTime()
     }

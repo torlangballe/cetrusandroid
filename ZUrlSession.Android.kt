@@ -44,9 +44,12 @@ class ZUrlRequest {
             var query = ""
             for (a in args) {
                 if (!query.isEmpty()) {
-                    query += ","
+                    query += "&"
                 }
                 query += ZStr.UrlEncode(a.key) + "=" + ZStr.UrlEncode(a.value)
+            }
+            if (query.isNotEmpty()) {
+                vurl += "?" + query
             }
             req.SetUrl(vurl)
             if (timeOutSecs != 0) {
@@ -59,11 +62,12 @@ class ZUrlRequest {
 }
 
 class ZUrlResponse {
-    val StatusCode:Int = 0
-    val ContentLength:Int = 0
-
+    var StatusCode:Int = 0
+    var ContentLength:Int = 0
+    var headers: Map<String, String> = mapOf()
+    var debugUrl: String = ""
     fun GetSimpleStringHeaders() : Map<String, String> {
-        return mapOf<String, String>()
+        return headers
     }
 }
 
@@ -81,16 +85,28 @@ data class ZUrlRequestReturnMessage(
         var code: Int? = null) {
 }
 
-fun doDone(onMain: Boolean, data: ZData?, err: String?, done: (response: ZUrlResponse?, data: ZData?, error: ZError?) -> Unit) {
+fun doDone(con: HttpURLConnection?, onMain: Boolean, data: ZData?, err: String?, done: (response: ZUrlResponse?, data: ZData?, error: ZError?) -> Unit) {
     var error: ZError? = null
     if (err != null) {
         error = ZNewError(err)
     }
+    var response = ZUrlResponse()
+    if (con != null) {
+        response.debugUrl = con.url.path
+        response.StatusCode = con!!.responseCode
+        var m: MutableMap<String, String> = mutableMapOf()
+        for ((k, v) in con!!.headerFields) {
+            if (k != null) {
+                m.set(k, v.first())
+            }
+        }
+        response.headers = m
+    }
     if (!onMain) {
-        done(ZUrlResponse(), data, error)
+        done(response, data, error)
     } else {
         ZMainQue.sync {
-            done(ZUrlResponse(), data, error)
+            done(response, data, error)
         }
     }
 }
@@ -112,13 +128,13 @@ class ZUrlSession {
                     val ba = bin.readBytes()
                     val data = ZData(data = ba)
 //                    bin.read(data.data)
-                    doDone(onMain, data, null, done)
+                    doDone(urlConnection, onMain, data, null, done)
                 } catch (ex: MalformedURLException) {
-                    doDone(onMain, null, "MalformedURLException: " + ex.localizedMessage, done)
+                    doDone(null, onMain, null, "MalformedURLException: " + ex.localizedMessage, done)
                 } catch (ex: IOException) {
-                    doDone(onMain, null, "IOException: " + ex.localizedMessage, done)
+                    doDone(null, onMain, null, "IOException: " + ex.localizedMessage, done)
                 } catch (ex: Exception) {
-                    doDone(onMain, null, "Exception: " + ex.localizedMessage, done)
+                    doDone(null, onMain, null, "Exception: " + ex.localizedMessage, done)
                 } finally {
                     urlConnection?.disconnect()
                 }
