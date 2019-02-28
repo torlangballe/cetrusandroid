@@ -85,8 +85,25 @@ data class ZDevice (val _dummy: Int = 0) {
                 return Triple(Build.DEVICE, 1, "")
             }
 
-        val HardwareType: String = Build.HARDWARE
-        val HardwareModel: String = Build.MODEL
+        val HardwareType: String
+            get() {
+                if (ZIsSimulator()) {
+                    if (ZIsTVBox()) {
+                        return "TV Emulator"
+                    }
+                    return "Emulator"
+                }
+                return Build.HARDWARE
+            }
+
+        val HardwareModel: String
+            get() {
+                if (ZIsSimulator()) {
+                    return "ATV"
+                }
+                return Build.MODEL
+            }
+
         val HardwareBrand: String = Build.BRAND
 
         private fun getAvailableInternalMemorySize(): Long {
@@ -165,7 +182,7 @@ data class ZDevice (val _dummy: Int = 0) {
 
         fun IsWifiEnabled(): Boolean {
             var wifiState = false
-            if (ZDebug.HasPermission(ACCESS_WIFI_STATE)) {
+            if (ZDebug.HasPermission(ACCESS_WIFI_STATE, request = false)) {
                 val wifiManager = zMainActivityContext!!.getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
                 wifiState = wifiManager.isWifiEnabled
             }
@@ -250,7 +267,7 @@ data class ZDevice (val _dummy: Int = 0) {
         }
 
         fun GetWifiMAC(): Long {
-            if (ZDebug.HasPermission(Manifest.permission.ACCESS_WIFI_STATE)) {
+            if (ZDebug.HasPermission(Manifest.permission.ACCESS_WIFI_STATE, request = false)) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     // Hardware ID are restricted in Android 6+
                     // https://developer.android.com/about/versions/marshmallow/android-6.0-changes.html#behavior-hardware-id
@@ -286,7 +303,7 @@ data class ZDevice (val _dummy: Int = 0) {
 
         fun GetWifiLinkSpeed(): String {
             var result: String = ""
-            if (ZDebug.HasPermission(Manifest.permission.ACCESS_WIFI_STATE) && ZDebug.HasPermission(Manifest.permission.ACCESS_NETWORK_STATE)) {
+            if (ZDebug.HasPermission(Manifest.permission.ACCESS_WIFI_STATE, request = false) && ZDebug.HasPermission(Manifest.permission.ACCESS_NETWORK_STATE, request = false)) {
                 val cm = zMainActivityContext!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 if (cm != null) {
                     val networkInfo = cm.activeNetworkInfo
@@ -311,7 +328,7 @@ data class ZDevice (val _dummy: Int = 0) {
 
         fun GetNetworkType(): ZNetworkType {
             var result = ZNetworkType.Unknown
-            if (ZDebug.HasPermission(Manifest.permission.ACCESS_NETWORK_STATE)) {
+            if (ZDebug.HasPermission(Manifest.permission.ACCESS_NETWORK_STATE, request = false)) {
                 val cm = zMainActivityContext!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
                 if (cm != null) {

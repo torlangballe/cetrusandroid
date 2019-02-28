@@ -60,8 +60,7 @@ class ZFileUrl: ZUrl {
             }
             if (!url.IsEmpty) {
                 try {
-                    val u = url.url!!.toURI()
-                    val file = File(u)
+                    val file = File(url.uri!!)
                     parts.fullname = file.name
                     if (parts.fullname != path) {
                         parts.base = file.parentFile.absolutePath
@@ -91,10 +90,10 @@ class ZFileUrl: ZUrl {
 
     val FilePath: String
         get() {
-            if (url == null) {
+            if (uri == null) {
                 return ""
             }
-            val uri = URI(ZStr.UrlDecode(url!!.path))
+            val uri = URI(ZStr.UrlDecode(uri!!.path))
             val str = uri.path
             if (IsFolder() && ZStr.Tail(str) != "/") {
                 return str + "/"
@@ -111,7 +110,7 @@ class ZFileUrl: ZUrl {
             IsDirectory()
 
     fun Exists() : Boolean {
-        if (url != null) {
+        if (uri != null) {
             var file = File(FilePath)
             return file.exists()
         }
@@ -119,7 +118,7 @@ class ZFileUrl: ZUrl {
     }
 
     fun CreateFolder() : Boolean {
-        if (url != null) {
+        if (uri != null) {
             if (Exists() && IsFolder()) {
                 return true
             }
@@ -134,7 +133,7 @@ class ZFileUrl: ZUrl {
     }
 
     fun GetDisplayName() : String {
-        if (url != null) {
+        if (uri != null) {
             return GetName()
         }
         return ""
@@ -207,7 +206,7 @@ class ZFileUrl: ZUrl {
     }
 
     fun Remove() : ZError? {
-        if (url != null) {
+        if (uri != null) {
             val f = File(FilePath)
             if (!f.delete()) {
                 return ZNewError("Error deleting file: " + FilePath)

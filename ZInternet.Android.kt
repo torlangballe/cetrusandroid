@@ -39,12 +39,10 @@ class ZInternet {
             }
         }
 
-        fun ResolveAddress(ip4address: String, got: (a: ZIPAddress) -> Unit) {
-            ZGetBackgroundQue().async {
-                var ip = ZIPAddress(ip4String = ip4address)
-                ip.address = InetAddress.getByName(ip4address)
-                got(ip)
-            }
+        fun ResolveAddress(ip4address: String) : ZIPAddress {
+            var ip = ZIPAddress(ip4String = ip4address)
+            ip.address = InetAddress.getByName(ip4address)
+            return ip
         }
 
         fun GetNetworkTrafficBytes(processUid: Int? = null): Long {

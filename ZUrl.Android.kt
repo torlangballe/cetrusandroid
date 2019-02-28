@@ -7,46 +7,65 @@
 package com.github.torlangballe.cetrusandroid
 
 import java.net.URL
+import java.net.URI
 //import java.nio.file.Files.isDirectory
 import java.io.File
 import android.content.Intent
 import android.net.Uri
+import java.lang.Exception
 import java.net.MalformedURLException
 import java.nio.file.Paths
 
 open class ZUrl {
-    var url: URL? = null
+    var uri: URI? = null
 
     constructor() {
-        url = null
+        uri = null
     }
 
     constructor(string: String) {
         try {
-            url = URL(string)
+            uri = URI(string)
         } catch (e: MalformedURLException) {
-            url = null
+            uri = null
         }
     }
 
     constructor(nativeUrl:URL) {
-        url = nativeUrl
+        uri = nativeUrl.toURI()
+    }
+
+    constructor(nativeUri:URI) {
+        uri = nativeUri
     }
 
     constructor(url: ZUrl) {
-        this.url = url.url
+        uri = url.uri
     }
 
     val IsEmpty: Boolean
-        get() = (url == null)
+        get() = (uri == null)
 
     fun IsDirectory() : Boolean {
-        val protocol = url?.getProtocol() ?: false
+        val protocol = uri?.scheme ?: false
         if (protocol == "file") {
-            return File(url?.getFile()).isDirectory() ?: false
+            return File(toUrl()?.getFile()).isDirectory()
         }
         // TODO: Can be online web dir too?
         return false
+    }
+
+    private fun toUrl() : URL? {
+        if (uri == null) {
+            return null
+        }
+        try {
+            val u = uri!!.toURL()
+            return u
+        } catch (e: Exception) {
+            ZDebug.Print("ZUrl.toUrl error:", e.localizedMessage)
+            return null
+        }
     }
 
     fun OpenInBrowser(inApp: Boolean, notInAppForSocial: Boolean = true) {
@@ -55,28 +74,36 @@ open class ZUrl {
     }
 
     fun GetName() : String {
-        if (url != null) {
-            val uri = Uri.parse(url!!.toString())
-            return Paths.get(uri.getPath()).getFileName().toString()
+        if (uri != null) {
+            return Paths.get(uri!!.getPath()).getFileName().toString()
         }
         return ""
     }
     val Scheme: String
-        get() {
-            return url?.protocol ?: ""
+        get()  {
+            return uri?.scheme ?: ""
         }
+
     val Host: String
         get() {
-            return url?.host ?: ""
+            return uri?.host ?: ""
         }
+
+    val Port: Int
+        get() {
+            return uri?.port ?: 0
+        }
+
     val AbsString: String
         get() {
-            return url?.toString() ?: ""
+            return uri?.toString() ?: ""
         }
+
     val ResourcePath: String
         get() {
-            return url?.path ?: ""
+            return uri?.path ?: ""
         }
+
     var Extension: String
         get() {
             // TODO: Fix quick and dirty
@@ -87,16 +114,17 @@ open class ZUrl {
             ZNOTIMPLEMENTED()
         }
     val Anchor: String
-        get() = url?.ref ?: ""
+            get() {
+                return toUrl()?.ref ?: ""
+            }
 
     val Parameters: Map<String, String>
         get() {
-            val q = url?.query
+            val q = uri?.query
             if (q != null) {
                 return ParametersFromString(q)
             }
-            val tail = ZStr.TailUntil((url?.toString())
-                    ?: "", sep = "?")
+            val tail = ZStr.TailUntil((uri?.toString()) ?: "", sep = "?")
             if (tail != "") {
                 return ParametersFromString(tail)
             }

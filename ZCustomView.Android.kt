@@ -23,9 +23,11 @@ open class ZCustomView: ViewGroup, ZView, View.OnFocusChangeListener, GestureDet
     override var objectName = ""
     override var isHighlighted: Boolean = false
     var touchInfo = ZTouchInfo()
-    var handleValueChangedFunc: (() -> Unit)? = null
+
     var minSize = ZSize(0, 0)
     var drawHandler: ((rect: ZRect, canvas: ZCanvas, view: ZCustomView) -> Unit)? = null // lateinit
+    var focusedHandler : ((on: Boolean) -> Unit)? = null
+
     var foregroundColor = ZColor.Black()
     var _isFocusable = false
     var canFocus
@@ -43,6 +45,12 @@ open class ZCustomView: ViewGroup, ZView, View.OnFocusChangeListener, GestureDet
     var xStrokeColor = ZColor.Clear()
     var xStrokeWidth = 0.0
 
+    val IsFocused: Boolean
+        get() {
+            val f = (zMainActivity!!.getCurrentFocus() === this)
+            return f
+        }
+
     var HandlePressedInPosFunc: ((pos: ZPos) -> Unit)?
         get() {
             return touchInfo.handlePressedInPosFunc
@@ -58,22 +66,30 @@ open class ZCustomView: ViewGroup, ZView, View.OnFocusChangeListener, GestureDet
             }
         }
 
-    override fun onFocusChange(v: View?, hasFocus: Boolean) {
-
-    }
-
-    fun SetHandleValueChangedFunc(handler: () -> Unit) {
-        handleValueChangedFunc = handler
-        this.AddTarget(this, forEventType = ZControlEventType.valueChanged)
-    }
-
-    open fun AddTarget(t: ZCustomView?, forEventType: ZControlEventType) {
-        when (forEventType) {
-//            ZControlEventType.pressed -> touchInfo.tapTarget = t
-            ZControlEventType.valueChanged -> valueTarget = t
+    override fun onFocusChange(view: View?, hasFocus: Boolean) {
+        var v: View? = this
+        while (hasFocus) {
+            v = v!!.parent as? View
+            if (v == null) {
+                break
+            }
+            val sc = v as? ZScrollView
+            if (sc != null) {
+                sc.ScrollToMakeSubChildVisible(view as ZView, animated = true)
+            }
         }
-//        View().isClickable = true
+        focusedHandler?.invoke(hasFocus)
     }
+
+    var HandleValueChangedFunc: (()-> Unit)?
+        get() {
+            return handleValueChangedFunction
+        }
+        set(h: (() -> Unit)?) {
+            handleValueChangedFunction = h
+        }
+
+    private var handleValueChangedFunction: (() -> Unit)? = null
 
     override var Usable: Boolean
         get() {
@@ -203,19 +219,6 @@ open class ZCustomView: ViewGroup, ZView, View.OnFocusChangeListener, GestureDet
     fun SetFGColor(color: ZColor) {
         foregroundColor = color
         Expose()
-    }
-
-    fun GetPosFromMe(pos: ZPos, inView: ZNativeView): ZPos {
-        ZNOTIMPLEMENTED()
-//        val cgpos = this.convert(pos.GetCGPoint(), to = inView)
-//        return ZPos(cgpos)
-        return ZPos()
-    }
-
-    fun GetPosToMe(pos: ZPos, inView: ZNativeView): ZPos {
-//        val cgpos = inView.convert(pos.GetCGPoint(), to = this)
-//        return ZPos(cgpos)
-        return ZPos()
     }
 
     fun GetViewsRectInMyCoordinates(view: ZView): ZRect {

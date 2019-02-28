@@ -77,7 +77,7 @@ interface ZView {
     fun Show(show: Boolean = true) {
         var v = View.GONE //INVISIBLE
         if (show) {
-//            v = View.VISIBLE
+            v = View.VISIBLE
         }
         View().setVisibility(v)
     }
@@ -264,6 +264,27 @@ interface ZView {
         }
         return null
     }
+
+    fun GetPosFromMe(pos: ZPos = ZPos(0, 0), inView: ZView): ZPos {
+        var v = inView as View
+        var p = pos
+        while (v != null) {
+            if (v === this) {
+                break
+            }
+            p += ZPos(v.left, v.top)
+            v = v.parent as View
+        }
+        return p
+    }
+
+    fun GetPosToMe(pos: ZPos, inView: ZView): ZPos {
+//        val cgpos = inView.convert(pos.GetCGPoint(), to = this)
+//        return ZPos(cgpos)
+        return ZPos()
+    }
+
+
 }
 
 fun zRemoveNativeViewFromParent(view:ZNativeView, detachFromContainer:Boolean) {

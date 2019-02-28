@@ -35,6 +35,9 @@ data class ZLocale(val _dummy:Int = 0) {
         }
 
         private fun isImperialCountry() : Boolean {
+            if (zMainActivityContext == null) {
+                ZDebug.Print("No zMainActivityContext")
+            }
             val currentLocale = zMainActivityContext!!.resources.configuration.locales.get(0)
             val country = currentLocale .getISO3Country().lowercased()
             if (country == "usa" || country == "mmr") {

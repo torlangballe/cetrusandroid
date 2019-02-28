@@ -11,8 +11,10 @@ import java.io.Closeable
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import kotlinx.coroutines.*
 import java.util.*
 import java.util.concurrent.CountDownLatch
+import kotlin.coroutines.CoroutineContext
 
 open class ZTimerBase : Closeable {
     var androidTimer: Timer? = null
@@ -86,6 +88,7 @@ class ZTimer: ZTimerBase() {
     }
 }
 
+/*
 fun ZPerformAfterDelay(afterDelay: Double, block: () -> Unit) {
     ZMainQue.sync(afterDelay, block)
 }
@@ -189,5 +192,52 @@ class ZDispatchQueue(threadName: String) : Thread() {
             waitLatch.countDown()
         }
         waitLatch.await()
+    }
+}
+*/
+
+fun ZPerformAfterDelay(afterDelay: Double, block: () -> Unit) {
+    ZMainQue.async(afterDelay, block)
+}
+
+val ZMainQue: ZDispatchQueue
+    get() {
+        return ZDispatchQueue("@main")
+    }
+
+fun ZGetBackgroundQue(name: String? = null, serial: Boolean = false) : ZDispatchQueue {
+    return ZDispatchQueue(name ?: "background-que")
+}
+
+// use kotlin coroutines? :
+// https://medium.com/@macastiblancot/android-coroutines-getting-rid-of-runonuithread-and-callbacks-cleaner-thread-handling-and-more-234c0a9bd8eb
+
+class ZDispatchQueue(threadName: String) : Thread() {
+    init {
+        name = threadName
+    }
+    fun run(wait: Boolean, delaySecs:Double = 0.0, f:()->Unit) {
+        val waitLatch = CountDownLatch(1)
+        val cx = (if (name == "@main") Dispatchers.Main else Dispatchers.Default)
+        GlobalScope.launch(cx) {
+            if (delaySecs != 0.0) {
+                delay((delaySecs * 1000).toLong())
+            }
+            f()
+            if (wait) {
+                waitLatch.countDown()
+            }
+        }
+        if (wait && name != "@main") {
+            waitLatch.await()
+        }
+    }
+
+    fun async(delaySecs:Double = 0.0, f:()->Unit) {
+        run(wait = false, delaySecs = delaySecs, f = f)
+    }
+
+    fun sync(delaySecs:Double = 0.0, f:()->Unit) {
+        run(wait = true, delaySecs = delaySecs, f = f)
     }
 }

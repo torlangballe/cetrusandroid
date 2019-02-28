@@ -15,15 +15,17 @@ import java.lang.Exception
 import java.util.Comparator
 
 typealias AnyHashable = String
-
 typealias ZAnyObject = Any
+
+open class ZObject { }
 
 fun ZIsApple() : Boolean {
     return false
 }
 
 fun ZIsSimulator() : Boolean {
-    return Build.HARDWARE.contains("goldfish")
+    return Build.HARDWARE.contains("goldfish") ||
+           Build.HARDWARE.contains("ranchu")
 }
 
 fun ZIsIOS() = false
@@ -152,7 +154,10 @@ fun <T : Comparable<T>> List <T>.Max() : T {
     return get(mi)
 }
 
-fun <K, T : Comparable<T>> List <K>.Max(field:(t:K) -> T) : K {
+fun <K, T : Comparable<T>> List <K>.Max(field:(t:K) -> T) : K? {
+    if (this.isEmpty()) {
+        return null
+    }
     var mi = -1
     for (i in 0 .. this.lastIndex) {
         if (mi == -1 || field(get(mi)).compareTo(field(get(i))) < 0) {
@@ -162,7 +167,10 @@ fun <K, T : Comparable<T>> List <K>.Max(field:(t:K) -> T) : K {
     return get(mi)
 }
 
-fun <K, T : Comparable<T>> List <K>.Min(field:(t:K) -> T) : K {
+fun <K, T : Comparable<T>> List <K>.Min(field:(t:K) -> T) : K? {
+    if (this.isEmpty()) {
+        return null
+    }
     var mi = -1
     for (i in 0 .. this.lastIndex) {
         if (mi == -1 || field(get(mi)).compareTo(field(get(i))) > 0) {

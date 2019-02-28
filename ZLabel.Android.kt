@@ -62,7 +62,11 @@ open class ZLabel: TextView, ZView {
             s /= 2f
         }
         this.setTextSize(s)
-        this.setLines(lines)
+        var l = lines
+        if (l == 0) {
+            l = 1
+        }
+        this.setLines(l)
         this.text = text
         debugText = text
         this.SetAlignment(align)
@@ -113,8 +117,8 @@ open class ZLabel: TextView, ZView {
             tdraw.text = text.toString()
             tdraw.maxLines = maxLines
             s = tdraw.GetBounds().size
-            s.w += 1
-            s.h += 3 // g, p, q etc clipped otherwise
+            s.w += 10
+            s.h += 5 // g, p, q etc clipped otherwise
         }
         s.w = maxOf(s.w, minWidth)
 

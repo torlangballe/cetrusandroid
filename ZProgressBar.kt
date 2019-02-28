@@ -24,12 +24,12 @@ class ZProgressBar: ZCustomView {
     constructor(height: Double = 2.0, width: Double = 100.0, color: ZColor = ZColor.Blue(), value: Double = 0.0) : super(name = "progress") {
 
         this.height = height
-        this.width = width
+        this.width = width * ZScreen.SoftScale
         this.color = color
         this.value = value
-        minSize = ZSize(width, height)
+        minSize = ZSize(this.width, this.height)
         SetBackgroundColor(ZColor.Clear())
-        SetCornerRadius(height / 2)
+        SetCornerRadius(height / 2.0)
     }
 
     override fun HandleClosing() {
@@ -53,9 +53,12 @@ class ZProgressBar: ZCustomView {
     }
 
     override fun DrawInRect(rect: ZRect, canvas: ZCanvas) {
+        var path = ZPath(rect = rect, corner = ZSize(height / 2, height / 2))
+        canvas.SetColor(color.OpacityChanged(0.2))
+        canvas.FillPath(path)
         var r = rect
-        r.size.w = rect.size.w * value.toDouble()
-        val path = ZPath(rect = r, corner = ZSize(height / 2, height / 2))
+        r.SetMaxX(rect.size.w * value.toDouble())
+        path = ZPath(rect = r, corner = ZSize(height / 2, height / 2))
         canvas.SetColor(color)
         canvas.FillPath(path)
     }

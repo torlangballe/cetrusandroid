@@ -17,7 +17,7 @@ class ZUrlRequest {
     var httpMethod: String = "GET"
     var timeoutIntervalSecs: Int? = null
     var headers = mutableMapOf<String, String>()
-    var httpBody = byteArrayOf(0)
+    var httpBody:ZData? = null
 
     fun SetUrl(url: String) {
         try {
@@ -121,20 +121,26 @@ class ZUrlSession {
             }
             ZGetBackgroundQue().async {
                 var urlConnection: HttpURLConnection? = null
+                var data: ZData? = null
                 try {
                     urlConnection = request.url!!.openConnection() as HttpURLConnection
                     urlConnection.requestMethod = request.httpMethod
+                    if (request.httpBody != null) {
+                        val os = urlConnection.getOutputStream()
+                        os.write(request.httpBody!!.data)
+                        os.close()
+                    }
                     val bin = BufferedInputStream(urlConnection.inputStream)
                     val ba = bin.readBytes()
-                    val data = ZData(data = ba)
+                    data = ZData(data = ba)
 //                    bin.read(data.data)
                     doDone(urlConnection, onMain, data, null, done)
                 } catch (ex: MalformedURLException) {
-                    doDone(null, onMain, null, "MalformedURLException: " + ex.localizedMessage, done)
+                    doDone(urlConnection, onMain, data, "MalformedURLException: " + ex.localizedMessage, done)
                 } catch (ex: IOException) {
-                    doDone(null, onMain, null, "IOException: " + ex.localizedMessage, done)
+                    doDone(urlConnection, onMain, data, "IOException: " + ex.localizedMessage, done)
                 } catch (ex: Exception) {
-                    doDone(null, onMain, null, "Exception: " + ex.localizedMessage, done)
+                    doDone(urlConnection, onMain, data, "Exception: " + ex.localizedMessage, done)
                 } finally {
                     urlConnection?.disconnect()
                 }

@@ -106,7 +106,7 @@ class ZMovieView: VideoView, ZView {
             ZInternet.GetNetworkTrafficBytes(mediaUid).toDouble()
         }
         if (interval == 0.0) {
-            return 0.0
+            return -1.0
         }
         val bitrate = traffic * 8.0 / interval
         return bitrate

@@ -30,12 +30,12 @@ class ZActivityIndicator: ProgressBar, ZView {
     }
 }
 
-fun ZAddActivityToContainer(on: Boolean, container:ZContainerView, align:ZAlignment, marg:ZSize = ZSize(0.0, 0.0)) {
+fun ZAddActivityToContainer(on: Boolean, container:ZContainerView, align:ZAlignment, marg:ZSize = ZSize(0.0, 0.0), big:Boolean = true) {
     if (on) {
         if (container.FindCellWithName("activity") != null) {
             return
         }
-        val v = ZActivityIndicator(big = false)
+        val v = ZActivityIndicator(big = big)
         container.Add(v, align = ZAlignment.Right or ZAlignment.Top, marg = ZSize(0.0, 0.0))
         container.ArrangeChildren()
         v.Start()

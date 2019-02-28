@@ -17,152 +17,153 @@ import android.widget.*
 
 interface ZTableViewDelegate {
     fun TableViewGetRowCount() : Int { return 0 }
-    fun TableViewGetHeightOfItem(index: ZTableIndex) : Double { return 10.0 }
-    fun TableViewSetupCell(cellSize: ZSize, index: ZTableIndex) : ZCustomView? { return null }
-    fun UpdateRow(index: Int) { }
-    fun HandleRowSelected(index: ZTableIndex) { }
-    fun GetAccessibilityForCell(index: ZTableIndex, prefix: String) : List<ZAccessibilty> { return listOf<ZAccessibilty>() }
+    fun TableViewGetHeightOfItem(index: Int) : Double { return 10.0 }
+    fun TableViewSetupCell(cellSize: ZSize, index: Int) : ZCustomView? { return null }
+//    fun UpdateRow(index: Int) { }
+    fun HandleRowSelected(index: Int) { }
+    fun GetAccessibilityForCell(index: Int, prefix: String) : List<ZAccessibilty> { return listOf<ZAccessibilty>() }
 }
 
 enum class ZTableViewRowAnimation { fade }
-data class ZTableIndex(var row:Int = -1) { }
 
-class ZTableView : ListView, ZView, ZTableViewDelegate {
+class ZTableView : ZScrollView, ZTableViewDelegate { // , View.OnFocusChangeListener
     override var objectName = "ZTableView"
     var first = true
     var tableRowBackgroundColor = ZColor.Black()
     var scrolling = false
-    var drawHandler: ((rect: ZRect, canvas: ZCanvas) -> Unit)? = null // lateinit ?
     var margins = ZSize(0, 0)
     var spacing = 0.0
     var focusedRow:Int? = null
 
-    private var ladapter: listAdapter? = null
-
-    override var isHighlighted:Boolean = false
-    override var Usable = true
-    override fun View() : ZNativeView = this
-
-    var selectionIndex: ZTableIndex = ZTableIndex()
+    var selectionIndex: Int = 0
     var owner: ZTableViewDelegate? = null
     var selectable = true
     var deleteHandler: (() -> Unit)? = null
     var selectedColor = ZColor()
 
-    constructor(name: String = "customview") : super(zMainActivityContext!!) {
-        selectionIndex = ZTableIndex(-1)
-        isFocusableInTouchMode = true
+    var stack = ZVStackView()
 
-        layoutMode = ViewGroup.LayoutParams.WRAP_CONTENT // was to make getView() work, might not be needed
-
+    constructor(name: String = "customview") : super() {
+        selectionIndex = -1
         Rect = ZRect(0.0, 0.0, 100.0, 300.0)
-
-        this.setOnItemClickListener { parent, view, position, id ->
-            val index = ZTableIndex(position)
-            owner!!.HandleRowSelected(index)
-            selectionIndex = index
-        }
-        focusable = View.NOT_FOCUSABLE
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (first && owner != null) {
-            ladapter = listAdapter(zMainActivityContext!!, owner!!, this)
-            adapter = ladapter
-        }
-        if (first) {
-            if (selectionIndex.row != -1) {
-                Select(selectionIndex.row)
-            }
-            if (selectable) {
-                choiceMode = ListView.CHOICE_MODE_SINGLE
-            }
-            first = false
-        }
-        val w = ZMath.Ceil(MeasureSpec.getSize(widthMeasureSpec).toDouble() * ZScreen.Scale).toInt()
-        val h = ZMath.Ceil(MeasureSpec.getSize(heightMeasureSpec).toDouble() * ZScreen.Scale).toInt()
-
-        setMeasuredDimension(w, h)
+        SetChild(stack)
+//        stack.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
     }
 
     override fun onLayout(p0: Boolean, p1: Int, p2: Int, p3: Int, p4: Int) {
+        stack.space = spacing
+        stack.margin = ZRect(margins.w, margins.h, -margins.w, -margins.h)
+        ReloadData()
         super.onLayout(p0, p1, p2, p3, p4)
-    }
-
-    override fun onDraw(canvas: Canvas?) {
-        if (first && owner != null) {
-        }
-        first = false
-        if (canvas != null) { // && drawHandler != null) {
-            val scale = ZScreen.Scale
-            val c = ZCanvas(canvas!!)
-            c.PushState()
-//            val cs = ZSize(canvas.width, canvas.height) / scale
-            canvas.scale(scale.toFloat(), scale.toFloat())
-            val r = LocalRect
-
-//            c.SetColor(ZColor.Green())
-//            c.FillPath(ZPath(rect = r))
-//
-            if (drawHandler != null) {
-                drawHandler!!(r, c)
-            }
-            c.PopState()
-            super.onDraw(canvas)
-        }
     }
 
     fun ExposeRows() {
         invalidate()
-        invalidateViews()
     }
 
     fun UpdateVisibleRows(animate: Boolean = true) {
-        invalidateViews()
-    }
-
-    fun updateRow(index:Int) {
-        owner!!.UpdateRow(index)
-        val v = GetRowViewFromIndex(index)
-        if (v != null) {
-            v.View().invalidate()
-            val vg = v.View() as ViewGroup
-            if (vg!!.childCount > 0) {
-                vg!!.getChildAt(0).invalidate()
-            }
-        }
     }
 
     fun ScrollToMakeRowVisible(row: Int, animated: Boolean = true) {
-        if (row < 0 || row>= getCount()) {
+        if (row < 0 || row >= owner!!.TableViewGetRowCount()) {
             return
         }
-        smoothScrollToPosition(row)
+        val c = owner!!.TableViewGetRowCount()
+        var h = margins.h
+        val top = scrollY
+        for (i in 0 .. c - 1) {
+            val e = h + owner!!.TableViewGetHeightOfItem(i)
+            if (i == row) {
+                if (h < 0) {
+                    scrollTo(0, h.toInt())
+                } else if (e > LocalRect.size.h) {
+                    scrollTo(0, (e - LocalRect.size.h).toInt())
+                }
+                break
+            }
+            h = e + spacing
+        }
     }
 
     fun IsFocused(rowView:ZCustomView) : Boolean {
         return rowView.isFocused
     }
 
-    fun ReloadData(row: Int? = null, animate: Boolean = false) {
-        if (row != null) {
-            updateRow(row!!)
-            return
+    fun UpdateRow(row: Int, recalculate: Boolean = true) {
+        val c = owner!!.TableViewGetRowCount()
+        var s = ZSize(LocalRect.size.w - margins.w * 2, owner!!.TableViewGetHeightOfItem(row))
+        val v = owner!!.TableViewSetupCell(s, row)
+//        onFocusChangeListener = this
+
+        v?.focusable = FOCUSABLE
+        if (row < stack.cells.count()) {
+            stack.cells[row].view = v
+        } else {
+            stack.Add(v!!, ZAlignment.Left or ZAlignment.Top or ZAlignment.HorExpand or ZAlignment.NonProp)
+            if (c > 1) {
+                s.h += spacing
+            }
+            if (recalculate) {
+                var r = stack.LocalRect
+                s += margins * 2.0
+                r.SetMaxY(r.Max.y + s.h)
+                stack.Rect = r
+                stack.ArrangeChildren()
+            }
         }
-        ladapter = listAdapter(zMainActivityContext!!, owner!!, this)
-        adapter = ladapter
+        v!!.Expose()
+    }
 
-        // incredible hack below, notifications, requestLayout, nothing else worked!!!:
-        var r = Rect
-        r += ZPos(0.0, 1.0)
-        zLayoutViewAndScale(this, r)
-        r += ZPos(0.0, -1.0)
-        zLayoutViewAndScale(this, r)
+    private fun getFirstVisibleRowIndex(fromTop: Boolean) : Int? {
+        val c = owner!!.TableViewGetRowCount()
+        var h = margins.h
+        val top = scrollY
+        for (i in 0 .. c - 1) {
+            val e = h + owner!!.TableViewGetHeightOfItem(i)
+            if (e >= top) {
+                if (fromTop) {
+                    return i
+                }
+            }
+            if (h >= top + LocalRect.size.h) {
+                return i - 1
+            }
+        }
+        return null
+    }
 
-//        requestLayout()
-//        ExposeRows()
-//        Expose()
-//        refreshDrawableState()
+//    override fun onFocusChange(v: View?, hasFocus: Boolean) {
+//        if (hasFocus) {
+//            stack.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+//            val i = getFirstVisibleRowIndex(fromTop = true)
+//            if (i != null) {
+//                val v = GetRowViewFromIndex(i!!)
+//                if (v != null) {
+//                    v.Focus()
+//                }
+//            }
+//        } else {
+//            stack.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+//        }
+//    }
+
+    fun ReloadData(animate: Boolean = false) {
+        val c = owner!!.TableViewGetRowCount()
+        var h = 0.0
+        var s = ZSize(LocalRect.size.w - margins.w * 2, 0.0)
+
+        for (i in 0 .. c - 1) {
+            s.h = owner!!.TableViewGetHeightOfItem(i)
+            h += s.h
+            if (i != 0) {
+                h += spacing
+            }
+            UpdateRow(i)
+        }
+        s.h = h
+        s += margins * 2.0
+        stack.Rect = ZRect(size = s)
+        stack.ArrangeChildren()
     }
 
     fun MoveRow(fromIndex: Int, toIndex: Int) {
@@ -170,27 +171,11 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
     }
 
     fun GetRowViewFromIndex(index: Int) : ZView? {
-        var firstListItemPosition = getFirstVisiblePosition()
-        var lastListItemPosition = firstListItemPosition + getChildCount() - 1
-
-        val childIndex = index - firstListItemPosition
-        if (index < firstListItemPosition || index > lastListItemPosition ) {
-            val l = ladapter!!
-            var v = l.getView(index, null, this)
-            if (margins.h > 0.0) {
-                val vc = v as ViewGroup
-                v = vc.getChildAt(0)
-            }
-            return v as ZView
+        if (index >= stack.cells.count()) {
+            return null
         }
-        val v = getChildAt(childIndex)
-        if (!margins.IsNull() || spacing != 0.0) {
-            val vg = v as ViewGroup
-            if (vg != null) {
-                return vg.getChildAt(0) as ZView
-            }
-        }
-        return v as ZView
+        val v = stack.cells[index].view as ZView
+        return v
     }
 
     fun GetParentTableViewFromRow(child: ZContainerView) : ZTableView {
@@ -211,110 +196,10 @@ class ZTableView : ListView, ZView, ZTableViewDelegate {
     }
 
     fun Select(row: Int) { // https://stackoverflow.com/questions/10788688/programmatically-select-item-listview-in-android
-        val oldSelection = selectionIndex
-        selectionIndex = ZTableIndex(row = row)
-        if (selectable) {
-            setItemChecked(row, true)
-        }
     }
 
     fun DeleteChildRow(index: Int, animation: ZTableViewRowAnimation = ZTableViewRowAnimation.fade) {
         removeViewAt(index)
     }
 
-//    fun scrollViewWillBeginDragging(scrollView: UIScrollView) {
-//        scrolling = true
-//    }
-//
-//    fun scrollViewDidEndDragging(scrollView: UIScrollView, decelerate: Boolean) {
-//        if (!decelerate) {
-//            scrolling = false
-//        }
-//    }
-//
-//    fun scrollViewDidEndDecelerating(scrollView: UIScrollView) {
-//        scrolling = false
-//    }
-
-}
-
-//class OuterRow : ZCustomView("list.row.container") {
-//    override fun DrawInRect(rect: ZRect, canvas: ZCanvas) {
-//        super.DrawInRect(rect, canvas)
-//        getChildAt(0).invalidate()
-//    }
-//}
-//
-
-internal class listAdapter(var context: Context, val owner: ZTableViewDelegate, val table: ZTableView) : BaseAdapter() {
-    override fun getCount(): Int {
-        val n = owner.TableViewGetRowCount()
-        return n
-    }
-
-    override fun getItem(position: Int): Any {
-        return position
-    }
-
-    override fun getItemId(position: Int): Long {
-        return position.toLong()
-    }
-
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val vi: View? = convertView
-//        if (true) { //vi == null) { // HACK FOR NOW
-            val index = ZTableIndex(position)
-            val p = parent as? ZTableView
-            var size = ZSize()
-            if (p == null) {
-                size.w = ZScreen.Main.size.w
-            } else {
-                size.w = p.LocalRect.size.w
-            }
-            if (size.w == 0.0) {
-                size.w = 100.0
-            }
-            size.h = owner.TableViewGetHeightOfItem(index)
-            var ov = owner.TableViewSetupCell(cellSize = size - ZSize(table.margins.w * 2.0, 0.0), index = index)
-            ov!!.canFocus = true
-            var r = ZRect(size = size)
-            var outView = ov
-            if (!table.margins.IsNull() || table.spacing != 0.0) {
-                if (table.margins.h != 0.0 && (position == 0 || position == owner.TableViewGetRowCount() - 1)) {
-                    size.h += table.margins.h
-                }
-                if (position != owner.TableViewGetRowCount() - 1) {
-                    size.h += table.spacing * ZScreen.SoftScale
-                }
-                val container = ZCustomView("list.row.container")
-                zLayoutViewAndScale(container, r)
-                container.minSize = r.size
-                container.addView(ov!!)
-                outView = container
-            }
-            val or = r.Expanded(ZSize(-table.margins.w, 0.0))
-            if (position == 0) {
-                or.SetMinY(or.Min.y + table.margins.h)
-            }
-            if (position == owner.TableViewGetRowCount() - 1) {
-                or.SetMaxY(or.Max.y - table.margins.h)
-            } else {
-                or.size.h -= table.spacing * ZScreen.SoftScale
-            }
-            zLayoutViewAndScale(ov!!, or)
-            val cv = ov as? ZContainerView
-            if (cv != null) {
-                cv.ArrangeChildren()
-            }
-            ov.minSize = or.size
-
-            if (ZIsTVBox()) {
-                ov!!.HandlePressedInPosFunc = { pos ->
-                    owner.HandleRowSelected(index)
-                }
-            }
-            return outView!!
-//        }
-//        return vi
-    }
 }

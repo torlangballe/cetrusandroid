@@ -21,12 +21,12 @@ class ZSoundPlayer { // NSObject, AVAudioPlayerDelegate
         }
 
         fun SetCurrentTrackPos(pos: Double, duration: Double) {
-            ZMainQue.async {
+            ZMainQue.sync {
             }
         }
 
         fun SetCurrentTrackPlayingMetadata(image: ZImage?, title: String, album: String = "", pos: Double? = null) {
-            ZMainQue.async {
+            ZMainQue.sync {
                 var songInfo = mutableMapOf<String, Any>()
             }
         }

@@ -156,7 +156,7 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
         }
         if (font != null) {
             this.typeface = font.typeface
-            this.textSize = font.size.toFloat()
+            this.textSize = (font.size / ZScreen.SoftScale).toFloat()
         }
         this.margin = margin
         this.SetAlignment(alignment)
@@ -453,7 +453,7 @@ open class ZTextField: EditText, ZTextBase, ZView, ZCustomViewDelegate {
 
     override fun canPerformAction(action: Selector, sender: Any?) : Boolean {
         if (!useMenu) {
-            ZMainQue.async {   ->
+            ZMainQue.sync {   ->
                 UIMenuController.shared.setMenuVisible(false, animated = false)
             }
         }

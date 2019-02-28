@@ -9,12 +9,15 @@
 
 package com.github.torlangballe.cetrusandroid
 
+import android.graphics.Canvas
 import android.widget.ScrollView
 
-class ZScrollView: ScrollView, ZView {
+open class ZScrollView: ScrollView, ZView {
     override var objectName = "scrollview"
     override var isHighlighted: Boolean = false
     override var Usable:Boolean = true
+
+    var drawHandler:((rect: ZRect, canvas: ZCanvas) -> Unit)? = null
 
     var child: ZContainerView? = null
     var margin = ZRect()
@@ -32,7 +35,11 @@ class ZScrollView: ScrollView, ZView {
             this
 
     fun SetContentOffset(offset: ZPos, animated: Boolean = true) {
-//        setContentOffset(offset.GetCGPoint(), animated = animated)
+        if (animated) {
+            smoothScrollTo(offset.x.toInt(), offset.y.toInt())
+        } else {
+            scrollTo(offset.x.toInt(), offset.y.toInt())
+        }
     }
 
     override fun onLayout(p0: Boolean, p1: Int, p2: Int, p3: Int, p4: Int) {
@@ -45,6 +52,37 @@ class ZScrollView: ScrollView, ZView {
             zLayoutViewAndScale(child!!, r)
             child!!.ArrangeChildren()
         }
+    }
+
+    override fun onDraw(canvas: Canvas?) {
+        if (canvas != null && drawHandler != null) {
+            super.onDraw(canvas)
+            val scale = ZScreen.Scale
+            val c = ZCanvas(canvas)
+            c.PushState()
+            val cs = ZSize(canvas.width, canvas.height) / scale
+            canvas.scale(scale.toFloat(), scale.toFloat())
+            val r = LocalRect
+            drawHandler?.invoke(LocalRect, c)
+            c.PopState()
+        }
+    }
+
+    fun ScrollToMakeSubChildVisible(view: ZView, animated: Boolean) {
+        var pos = GetPosFromMe(inView = view)
+        pos.y -= scrollY
+        val h = LocalRect.size.h
+        val end = pos.y + view.LocalRect.size.h
+        var to = ZPos()
+        if (pos.y < 0.0) {
+            to.y = pos.y
+        } else if (end > h) {
+            to.y = end  - h
+        } else {
+            return
+        }
+        to.y += scrollY
+        SetContentOffset(to, animated)
     }
 
     fun ArrangeChildren() {
