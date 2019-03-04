@@ -47,7 +47,12 @@ class ZTableView : ZScrollView, ZTableViewDelegate { // , View.OnFocusChangeList
         selectionIndex = -1
         Rect = ZRect(0.0, 0.0, 100.0, 300.0)
         SetChild(stack)
-//        stack.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+
+        focusable = android.view.View.NOT_FOCUSABLE
+
+//        onFocusChangeListener = this
+
+//        descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
     }
 
     override fun onLayout(p0: Boolean, p1: Int, p2: Int, p3: Int, p4: Int) {
@@ -93,7 +98,7 @@ class ZTableView : ZScrollView, ZTableViewDelegate { // , View.OnFocusChangeList
         val c = owner!!.TableViewGetRowCount()
         var s = ZSize(LocalRect.size.w - margins.w * 2, owner!!.TableViewGetHeightOfItem(row))
         val v = owner!!.TableViewSetupCell(s, row)
-//        onFocusChangeListener = this
+        v!!.id = row
 
         v?.focusable = FOCUSABLE
         if (row < stack.cells.count()) {
@@ -128,25 +133,28 @@ class ZTableView : ZScrollView, ZTableViewDelegate { // , View.OnFocusChangeList
             if (h >= top + LocalRect.size.h) {
                 return i - 1
             }
+            h = e + spacing
         }
         return null
     }
-
-//    override fun onFocusChange(v: View?, hasFocus: Boolean) {
-//        if (hasFocus) {
-//            stack.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
-//            val i = getFirstVisibleRowIndex(fromTop = true)
-//            if (i != null) {
-//                val v = GetRowViewFromIndex(i!!)
-//                if (v != null) {
-//                    v.Focus()
-//                }
-//            }
-//        } else {
-//            stack.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
-//        }
-//    }
-
+/*
+    override fun onFocusChange(v: View?, hasFocus: Boolean) {
+        if (hasFocus) {
+            focusable = android.view.View.NOT_FOCUSABLE
+            descendantFocusability = ViewGroup.FOCUS_BEFORE_DESCENDANTS
+            val i = getFirstVisibleRowIndex(fromTop = true)
+            if (i != null) {
+                val v = GetRowViewFromIndex(i!!)
+                if (v != null) {
+                    v.Focus()
+                }
+            }
+        } else {
+            focusable = android.view.View.FOCUSABLE
+            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+        }
+    }
+*/
     fun ReloadData(animate: Boolean = false) {
         val c = owner!!.TableViewGetRowCount()
         var h = 0.0

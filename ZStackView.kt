@@ -6,11 +6,14 @@
 //
 package com.github.torlangballe.cetrusandroid
 
+import android.view.View
+
 open class ZStackView: ZContainerView {
     var space = 6.0
     var vertical = false
 
     constructor(name: String = "stackview") : super(name = name) {
+        focusable = android.view.View.NOT_FOCUSABLE
         //    userInteractionEnabled = false
     }
 
@@ -69,6 +72,42 @@ open class ZStackView: ZContainerView {
             }
         }
         return vr
+    }
+
+    fun getFocusableChildrenOrderedByHorPosition() : MutableList<View> {
+        var a = mutableListOf<View>()
+
+        for (align in arrayOf(ZAlignment.Left, ZAlignment.HorCenter, ZAlignment.Right)) {
+            for (c in cells) {
+                if (c.alignment and align) {
+                    val s = c.view as? ZStackView
+                    if (s != null) {
+                        a.addAll(s.getFocusableChildrenOrderedByHorPosition())
+                    } else if (c.view!!.isFocusable) {
+                        a.append(c.view!!)
+                    }
+                }
+            }
+        }
+        return a
+    }
+
+    // This is a hack function necessary on Android TV since (a bug causes?) moving horizontal focus above a ScrollView
+    // can set the focus to a hidden view in the scroll view, ABOVE the visible part of the view, but where focus
+    // would go if it was visible. Forcing a stack (like title-bars) to have a specific focus order avoids this.
+    fun ForceHorizontalFocusNavigation() {
+        val start = ZMath.RandomN(100000) * 1000
+        val kids = getFocusableChildrenOrderedByHorPosition()
+        val last = kids.count() - 1
+        var i = 0
+        for (view in kids) {
+            val left = if (i > 0) start + i - 1 else start + last
+            view.id = start + i
+            view.nextFocusLeftId = left
+            val right = if (i < last) start + i + 1 else start
+            view.nextFocusRightId = right
+            i++
+        }
     }
 
     override open fun ArrangeChildren(onlyChild: ZView?) {

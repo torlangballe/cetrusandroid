@@ -23,7 +23,7 @@ open class ZScrollView: ScrollView, ZView {
     var margin = ZRect()
 
     constructor() : super(zMainActivityContext!!) {
-
+//        focusable = android.view.View.NOT_FOCUSABLE // it is by default!
     }
 
     companion object {
