@@ -31,7 +31,7 @@ class ZSocket {
         val socket = DatagramSocket()
         try {
             val dp: DatagramPacket
-            dp = DatagramPacket(data.data, data.length, inetAddress!!, port)
+            dp = DatagramPacket(data.data, data.Length, inetAddress!!, port)
             socket.setBroadcast(true)
             socket.send(dp)
             socket.close()

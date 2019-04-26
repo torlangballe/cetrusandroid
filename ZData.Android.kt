@@ -16,15 +16,19 @@ open class ZData(var data:ByteArray = ByteArray(0)) {
         ZNOTIMPLEMENTED()
     }
 
-    val length: Int
+    val Length: Int
         get() {
             return data.size
         }
 
     companion object {
-        fun FromUrl(url: ZUrl): Pair<ZData?, ZError?> {
-            ZNOTIMPLEMENTED()
-            return Pair(null, null)
+        fun FromUrl(url: ZUrl, got:(data: ZData?, err: ZError?)->Unit) {
+            var d: ZData? = null
+            var e: ZError? = null
+            val req = ZUrlRequest.Make(ZUrlRequestType.Get, url.AbsString)
+            ZUrlSession.Send(req) { resp, data, err ->
+                got(data, err)
+            }
         }
 
         fun FromHex(hex:String) : ZData {

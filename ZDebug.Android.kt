@@ -32,13 +32,13 @@ open class ZDebug(var dummy:Int = 0) {
         }
 
         fun IsRelease(): Boolean {
-            return (zMainActivityContext!!.getApplicationInfo().flags and ApplicationInfo.FLAG_DEBUGGABLE) === 0
+            return (zGetCurrentContext()!!.getApplicationInfo().flags and ApplicationInfo.FLAG_DEBUGGABLE) === 0
         }
 
         fun IsMinIOS11(): Boolean = false
 
         fun HasPermission(permission: String, request:Boolean = true): Boolean {
-            val perm = ContextCompat.checkSelfPermission(zMainActivityContext!!, permission)
+            val perm = ContextCompat.checkSelfPermission(zGetCurrentContext()!!, permission)
             if (perm === PackageManager.PERMISSION_GRANTED) {
                 return true
             }

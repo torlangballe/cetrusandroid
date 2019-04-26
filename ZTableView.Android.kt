@@ -102,7 +102,9 @@ class ZTableView : ZScrollView, ZTableViewDelegate { // , View.OnFocusChangeList
 
         v?.focusable = FOCUSABLE
         if (row < stack.cells.count()) {
+            zRemoveNativeViewFromParent(stack.cells[row].view!!, detachFromContainer = false)
             stack.cells[row].view = v
+            zAddNativeView(v!!, toParent = stack, index = row)
         } else {
             stack.Add(v!!, ZAlignment.Left or ZAlignment.Top or ZAlignment.HorExpand or ZAlignment.NonProp)
             if (c > 1) {

@@ -31,6 +31,9 @@ fun ZIsSimulator() : Boolean {
 fun ZIsIOS() = false
 
 fun ZIsTVBox() : Boolean {
+    if (zMainActivity == null) {
+        return true;
+    }
     val uiModeManager = zMainActivity!!.getSystemService(UI_MODE_SERVICE) as? UiModeManager
     if (uiModeManager != null && uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) {
         return true
@@ -136,6 +139,19 @@ fun <K, V> MutableMap<K, V>.removeByValue(value:V) : Boolean {
 // remove a value from a list
 fun <T> MutableList<T>.removeByValue(value:T) : Boolean {
     return remove(value)
+}
+
+fun <V> Map<String, V>.stringFromHttpParameters(escape: Boolean = true, sep: String="&") : String {
+    var str = ""
+    forEach { k, v ->
+        if (!str.isEmpty()) {
+            str+= sep
+        }
+        val sk = if (escape) ZStr.UrlEncode(k) else k
+        val sv = if (escape) ZStr.UrlEncode("${v}") else v
+        str +=  sk + "=" + sv
+    }
+    return str
 }
 
 // ZTS is used for internationalization, currently dummy does nothing, returns stirng

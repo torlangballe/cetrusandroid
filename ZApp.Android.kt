@@ -7,15 +7,28 @@
 package com.github.torlangballe.cetrusandroid
 
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.view.KeyEvent
 import android.content.pm.PackageManager
-
+import android.os.Handler
+import android.os.Message
+import android.widget.Toast
+import android.content.IntentFilter
+import android.support.v4.content.LocalBroadcastManager
 
 
 var zMainActivityContext: Context? = null
 var zMainActivity: Activity? = null
 var lastOrientation = -1
+
+fun zGetCurrentContext() : Context? {
+    if (zMainActivityContext == null) {
+        return zServiceContext
+    }
+    return zMainActivityContext
+}
 
 open class ZApp {
     companion object {
@@ -39,6 +52,9 @@ open class ZApp {
             if (!first) {
                 zHandleOrientationChanged()
             }
+        }
+
+        fun handleMessage(message: Message) {
         }
     }
 
@@ -122,10 +138,39 @@ open class ZApp {
     open fun HandleExit() {}
 }
 
+private class DataUpdateReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val url = ZUrl(string = intent.dataString)
+        mainZApp?.HandleOpenUrl(url)
+    }
+}
+
+private var dataUpdateReceiver: DataUpdateReceiver? = null
+// https://stackoverflow.com/questions/2463175/how-to-have-android-service-communicate-with-activity
+
 open class ZActivity: Activity() {
+    val messageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            // Get extra data included in the Intent
+            val message = intent.getStringExtra("message")
+        }
+    }
+
     override fun onBackPressed() {
         val view = ZGetCurrentyPresentedView()
         view.HandleBackButton()
+    }
+
+    override fun onPause() {
+        if (dataUpdateReceiver != null) {
+            unregisterReceiver(dataUpdateReceiver)
+        }
+        super.onPause()
+    }
+
+    override fun onResume() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, IntentFilter("custom-event-name"));
+        super.onResume()
     }
 
     override fun onStop() {

@@ -29,8 +29,8 @@ private fun getScaleFromName(name:String) : Float {
 
 /*
 private fun namedImageRes(name:String) : Bitmap? {
-    val res = zMainActivityContext!!.resources
-    val pn = zMainActivityContext!!.getPackageName()
+    val res = zGetCurrentContext()!!.resources
+    val pn = zGetCurrentContext()!!.getPackageName()
     val (stem, _) = ZStr.GetStemAndExtension(fileName = name)
     val resourceId = res.getIdentifier(stem, "drawable", pn)
 
@@ -43,7 +43,7 @@ private fun namedImageRes(name:String) : Bitmap? {
 
 private fun namedImageSingle(name:String) : Bitmap? {
     try {
-        val bstream = zMainActivityContext!!.getAssets().open("images/" + name)
+        val bstream = zGetCurrentContext()!!.getAssets().open("images/" + name)
         val (stem, _) = ZStr.GetStemAndExtension(fileName = name)
 
         var o = BitmapFactory.Options()
@@ -133,7 +133,7 @@ class ZImage(var bitmap:Bitmap? = null) {
             val top = capInsets.Min.y.toInt() * scale.toInt()
             val right = (Size.w - capInsets.Max.x).toInt() * scale.toInt()
             val bottom = (Size.h - capInsets.Max.y).toInt() * scale.toInt()
-            image.ninepatch = NinePatchBitmapFactory.createNinePatch(zMainActivityContext!!.resources, bitmap!!, top, left, bottom, right)
+            image.ninepatch = NinePatchBitmapFactory.createNinePatch(zGetCurrentContext()!!.resources, bitmap!!, top, left, bottom, right)
             image.scale = scale
             return image
         }

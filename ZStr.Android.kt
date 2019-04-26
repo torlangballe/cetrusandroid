@@ -25,7 +25,9 @@ data class ZStr(val dummy:Int = 0) {
         }
 
         fun Format(format: String, vararg args: Any?) : String {
-            val f = ZStr.Replace(format, "%S", "%s")
+            var f = ZStr.Replace(format, "%S", "%s")
+            f = ZStr.Replace(f, "%lx", "%x")
+            f = ZStr.Replace(f, "%ld", "%d")
             return f.format(*args)
         }
 

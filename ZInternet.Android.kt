@@ -28,7 +28,7 @@ class ZInternet {
             try {
                 ds = DatagramSocket()
                 val dp: DatagramPacket
-                dp = DatagramPacket(data.data, data.length, address.address, port)
+                dp = DatagramPacket(data.data, data.Length, address.address, port)
                 ds.setBroadcast(true)
                 ds.send(dp)
             } catch (e: Exception) {
@@ -50,6 +50,18 @@ class ZInternet {
                 return TrafficStats.getUidRxBytes(processUid!!)
             }
             return TrafficStats.getTotalRxBytes()
+        }
+
+        fun GetHardwareAddressAsString(address:Long) : String {
+            val str = ZStr.Format("%016x", address)
+            var out = ""
+            str.forEachIndexed { i, c ->
+                if (i%2 == 0 && i > 0) {
+                    out += ":"
+                }
+                out += c.toString()
+            }
+            return out
         }
 
         fun PingAddressForLatency(ipAddress: ZIPAddress): Double? {

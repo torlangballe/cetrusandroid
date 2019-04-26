@@ -11,7 +11,7 @@ data class ZLocale(val _dummy:Int = 0) {
     companion object {
 
         fun GetDeviceLanguageCode(forceNo: Boolean = true) : String {
-            val currentLocale = zMainActivityContext!!.resources.configuration.locales.get(0)
+            val currentLocale = zGetCurrentContext()!!.resources.configuration.locales.get(0)
             return currentLocale.language
         }
 
@@ -35,11 +35,12 @@ data class ZLocale(val _dummy:Int = 0) {
         }
 
         private fun isImperialCountry() : Boolean {
-            if (zMainActivityContext == null) {
-                ZDebug.Print("No zMainActivityContext")
+            if (zGetCurrentContext() == null || zGetCurrentContext()!!.resources == null) {
+                ZDebug.Print("No zMainActivityContext.resources")
+                return false
             }
-            val currentLocale = zMainActivityContext!!.resources.configuration.locales.get(0)
-            val country = currentLocale .getISO3Country().lowercased()
+            val currentLocale = zGetCurrentContext()?.resources?.configuration?.locales?.get(0)
+            val country = currentLocale?.getISO3Country()?.lowercased() ?: ""
             if (country == "usa" || country == "mmr") {
                 return true
             }

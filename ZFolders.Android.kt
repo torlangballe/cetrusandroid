@@ -19,10 +19,10 @@ data class ZFolders (val _dummy: Int = 0) {
         fun GetFileInFolderType(type: ZFolderType, addPath: String = "") : ZFileUrl {
             var furl = ZFileUrl()
             if (type == ZFolderType.preferences) {
-                val file = zMainActivityContext!!.getApplicationContext().getFilesDir()
+                val file = zGetCurrentContext()!!.getApplicationContext().getFilesDir()
                 furl = ZFileUrl(filePath = file.path)
             } else if (type == ZFolderType.caches) {
-                val tempDir = zMainActivityContext!!.externalCacheDir // context being the Activity pointer
+                val tempDir = zGetCurrentContext()!!.externalCacheDir // context being the Activity pointer
                 furl = ZFileUrl(filePath = tempDir.path)
             } else if (type == ZFolderType.temporary) {
                 val f = GetFileInFolderType(ZFolderType.caches, "temp")

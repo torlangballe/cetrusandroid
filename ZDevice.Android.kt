@@ -22,6 +22,7 @@ import android.os.StatFs
 import android.os.Environment.getDataDirectory
 import android.app.Activity
 import android.app.ActivityManager
+import android.content.Context.WIFI_SERVICE
 import java.io.IOException
 import java.io.RandomAccessFile
 import android.telephony.TelephonyManager
@@ -33,6 +34,11 @@ import android.net.NetworkInfo
 import android.provider.Settings
 import android.provider.Settings.Secure
 import kotlinx.io.ByteBuffer
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.math.BigInteger
+import java.net.InetAddress
+import java.nio.ByteOrder
 
 data class ZDevice (val _dummy: Int = 0) {
     companion object {
@@ -53,7 +59,7 @@ data class ZDevice (val _dummy: Int = 0) {
             }
 
         val IdentifierForVendor: String?
-            get() = Secure.getString(zMainActivityContext!!.getContentResolver(), Secure.ANDROID_ID)
+            get() = Secure.getString(zGetCurrentContext()!!.getContentResolver(), Secure.ANDROID_ID)
 
         val Manufacturer: String = Build.MANUFACTURER
 
@@ -136,6 +142,33 @@ data class ZDevice (val _dummy: Int = 0) {
             return totalBlocks * blockSize
         }
 
+        fun GetCpuUsage() : List<Double> {
+            try {
+                val pid = android.os.Process.myPid().toString()
+                val cmd = "/system/bin/top -n 1 -p " + pid
+                val process = Runtime.getRuntime().exec(cmd)
+                val reader = BufferedReader(InputStreamReader(process.inputStream))
+                while (true) {
+                    val line = reader.readLine()
+                    if (line == null) {
+                        break
+                    }
+                    if (ZStr.HasPrefix(line, pid + " ")) {
+                        val parts = ZStr.Split(line, " ").filter { !it.isEmpty() }
+                        if (parts.count() > 8) {
+                            val cpu = ZStr.ToDouble(parts[8], -1.0)!!
+//                            ZDebug.Print("GetCpuUsage:", cpu)
+                            return listOf(cpu)
+                        }
+                        break
+                    }
+                }
+            } catch (e: Exception) {
+                ZDebug.Print("GetCpuUsage exception:", e.localizedMessage)
+            }
+            return listOf()
+        }
+
         fun FreeAndUsedDiskSpace() : Pair<Long, Long> {
             return Pair(getAvailableInternalMemorySize(), getTotalInternalMemorySize())
         }
@@ -144,7 +177,7 @@ data class ZDevice (val _dummy: Int = 0) {
             var totalMemory: Long = 0
             if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN) {
                 val mi = ActivityManager.MemoryInfo()
-                val activityManager = zMainActivityContext!!.getSystemService(Activity.ACTIVITY_SERVICE) as ActivityManager
+                val activityManager = zGetCurrentContext()!!.getSystemService(Activity.ACTIVITY_SERVICE) as ActivityManager
                 if (activityManager != null) {
                     activityManager.getMemoryInfo(mi)
                     totalMemory = mi.totalMem
@@ -183,13 +216,33 @@ data class ZDevice (val _dummy: Int = 0) {
         fun IsWifiEnabled(): Boolean {
             var wifiState = false
             if (ZDebug.HasPermission(ACCESS_WIFI_STATE, request = false)) {
-                val wifiManager = zMainActivityContext!!.getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+                val wifiManager = zGetCurrentContext()!!.getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
                 wifiState = wifiManager.isWifiEnabled
             }
             return wifiState
         }
 
-        fun GetIPv4Address(): String {
+
+        fun GetWifiIPv4Address(): String {
+            val wifiManager = zGetCurrentContext()!!.getSystemService(WIFI_SERVICE) as WifiManager
+            var ipAddress = wifiManager.getConnectionInfo().getIpAddress()
+
+            // Convert little-endian to big-endianif needed
+            if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+                ipAddress = Integer.reverseBytes(ipAddress)
+            }
+
+            val ipByteArray = BigInteger.valueOf(ipAddress.toLong()).toByteArray()
+
+            var ipAddressString = ""
+            try {
+                ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress()
+            } catch (ex: java.lang.Exception) {
+            }
+            return ipAddressString;
+        }
+
+        fun GetIpv4Address() : String {
             try {
                 val interfaces = Collections.list(NetworkInterface.getNetworkInterfaces())
                 for (intf in interfaces) {
@@ -234,12 +287,12 @@ data class ZDevice (val _dummy: Int = 0) {
 
         private fun bytesToLong(bytes:ByteArray) : Long {
             val buffer = ByteBuffer.allocate(Long.SIZE_BYTES)
-            buffer.put(bytes)
             var add = Long.SIZE_BYTES - bytes.size
             while (add > 0) {
                 buffer.put(0)
                 add--
             }
+            buffer.put(bytes)
             buffer.flip() //need flip ?
             return buffer.getLong()
         }
@@ -304,7 +357,7 @@ data class ZDevice (val _dummy: Int = 0) {
         fun GetWifiLinkSpeed(): String {
             var result: String = ""
             if (ZDebug.HasPermission(Manifest.permission.ACCESS_WIFI_STATE, request = false) && ZDebug.HasPermission(Manifest.permission.ACCESS_NETWORK_STATE, request = false)) {
-                val cm = zMainActivityContext!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val cm = zGetCurrentContext()!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 if (cm != null) {
                     val networkInfo = cm.activeNetworkInfo
                     if (networkInfo == null) {
@@ -313,7 +366,7 @@ data class ZDevice (val _dummy: Int = 0) {
 
                     if (networkInfo != null && networkInfo.isConnected) {
                         val wifiManager =
-                            zMainActivityContext!!.getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+                            zGetCurrentContext()!!.getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
                         if (wifiManager != null) {
                             val connectionInfo = wifiManager.connectionInfo
                             if (connectionInfo != null && !TextUtils.isEmpty(connectionInfo.ssid)) {
@@ -329,7 +382,7 @@ data class ZDevice (val _dummy: Int = 0) {
         fun GetNetworkType(): ZNetworkType {
             var result = ZNetworkType.Unknown
             if (ZDebug.HasPermission(Manifest.permission.ACCESS_NETWORK_STATE, request = false)) {
-                val cm = zMainActivityContext!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val cm = zGetCurrentContext()!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
                 if (cm != null) {
                     val activeNetwork = cm.activeNetworkInfo
@@ -338,7 +391,7 @@ data class ZDevice (val _dummy: Int = 0) {
                     } else if (activeNetwork.type == ConnectivityManager.TYPE_WIFI || activeNetwork.type == ConnectivityManager.TYPE_WIMAX) {
                         result = ZNetworkType.WifiMax
                     } else if (activeNetwork.type == ConnectivityManager.TYPE_MOBILE) {
-                        val manager = zMainActivityContext!!.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+                        val manager = zGetCurrentContext()!!.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
                         if (manager != null && manager.simState == TelephonyManager.SIM_STATE_READY) {
                             when (manager.networkType) {

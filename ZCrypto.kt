@@ -11,7 +11,7 @@ package com.github.torlangballe.cetrusandroid
 fun ZCrypto.Companion.MD5ToHex(data: ZData) : String {
     var str = ""
     for (b in ZCrypto.MD5(data = data)) {
-        str += ZStr.Format("%x", b)
+        str += ZStr.Format("%02x", b)
     }
     return str
 }

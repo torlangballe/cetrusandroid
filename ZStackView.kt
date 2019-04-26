@@ -78,16 +78,21 @@ open class ZStackView: ZContainerView {
         var a = mutableListOf<View>()
 
         for (align in arrayOf(ZAlignment.Left, ZAlignment.HorCenter, ZAlignment.Right)) {
+            var single = mutableListOf<View>()
             for (c in cells) {
                 if (c.alignment and align) {
                     val s = c.view as? ZStackView
                     if (s != null) {
-                        a.addAll(s.getFocusableChildrenOrderedByHorPosition())
+                        single.addAll(s.getFocusableChildrenOrderedByHorPosition())
                     } else if (c.view!!.isFocusable) {
-                        a.append(c.view!!)
+                        single.append(c.view!!)
                     }
                 }
             }
+            if (align == ZAlignment.Right) {
+                single.reverse()
+            }
+            a.addAll(single)
         }
         return a
     }

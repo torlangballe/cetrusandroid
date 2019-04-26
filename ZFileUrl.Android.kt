@@ -68,11 +68,13 @@ class ZFileUrl: ZUrl {
                     parts.extension= "" + file.extension
                     parts.stub = file.nameWithoutExtension
                 }
-                catch (e: URISyntaxException) {
-                    print("bad uri")
-                }
-                catch (e: IllegalArgumentException) {
-                    print("bad file")
+                catch (e: Exception) {
+                    var p = ZStr.TailUntilWithRest(path, "/")
+                    parts.fullname = p.first
+                    parts.base = p.second
+                    p = ZStr.TailUntilWithRest(parts.fullname, ".")
+                    parts.stub = p.second
+                    parts.extension = p.first
                 }
             }
             return parts

@@ -11,6 +11,7 @@ package com.github.torlangballe.cetrusandroid
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.net.*
+import java.util.concurrent.CountDownLatch
 
 class ZUrlRequest {
     var url: URL? = null
@@ -41,13 +42,7 @@ class ZUrlRequest {
             val req = ZUrlRequest()
             var vurl = url
 
-            var query = ""
-            for (a in args) {
-                if (!query.isEmpty()) {
-                    query += "&"
-                }
-                query += ZStr.UrlEncode(a.key) + "=" + ZStr.UrlEncode(a.value)
-            }
+            val query = args.stringFromHttpParameters()
             if (query.isNotEmpty()) {
                 vurl += "?" + query
             }
@@ -93,13 +88,17 @@ fun doDone(con: HttpURLConnection?, onMain: Boolean, data: ZData?, err: String?,
     var response = ZUrlResponse()
     if (con != null) {
         response.debugUrl = con.url.path
-        response.StatusCode = con!!.responseCode
+        try {
+            response.StatusCode = con.responseCode // this can throw error if not "connected"
+        } catch (e:Exception) { }
         var m: MutableMap<String, String> = mutableMapOf()
-        for ((k, v) in con!!.headerFields) {
-            if (k != null) {
-                m.set(k, v.first())
+        try {
+            for ((k, v) in con!!.headerFields) {
+                if (k != null) {
+                    m.set(k, v.first())
+                }
             }
-        }
+        } catch (e:Exception) { }
         response.headers = m
     }
     if (!onMain) {
@@ -114,47 +113,53 @@ fun doDone(con: HttpURLConnection?, onMain: Boolean, data: ZData?, err: String?,
 class ZUrlSession {
     // transactions are debugging list for listing all transactions
     companion object {
-        fun Send(request: ZUrlRequest, onMain: Boolean = true, async: Boolean = true, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, data: ZData?, error: ZError?) -> Unit) : ZURLSessionTask? {
-            if (!async) {
-                SendSync(request, makeStatusCodeError = makeStatusCodeError, done = done)
-                return null
-            }
-            ZGetBackgroundQue().async {
-                var urlConnection: HttpURLConnection? = null
-                var data: ZData? = null
-                try {
-                    urlConnection = request.url!!.openConnection() as HttpURLConnection
-                    urlConnection.requestMethod = request.httpMethod
-                    if (request.httpBody != null) {
-                        val os = urlConnection.getOutputStream()
-                        os.write(request.httpBody!!.data)
-                        os.close()
-                    }
-                    val bin = BufferedInputStream(urlConnection.inputStream)
-                    val ba = bin.readBytes()
-                    data = ZData(data = ba)
-//                    bin.read(data.data)
-                    doDone(urlConnection, onMain, data, null, done)
-                } catch (ex: MalformedURLException) {
-                    doDone(urlConnection, onMain, data, "MalformedURLException: " + ex.localizedMessage, done)
-                } catch (ex: IOException) {
-                    doDone(urlConnection, onMain, data, "IOException: " + ex.localizedMessage, done)
-                } catch (ex: Exception) {
-                    doDone(urlConnection, onMain, data, "Exception: " + ex.localizedMessage, done)
-                } finally {
-                    urlConnection?.disconnect()
+
+        fun send(request: ZUrlRequest, onMain: Boolean = true, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, data: ZData?, error: ZError?) -> Unit) : ZURLSessionTask? {
+            var urlConnection: HttpURLConnection? = null
+            var data: ZData? = null
+            try {
+                urlConnection = request.url!!.openConnection() as HttpURLConnection
+                urlConnection.requestMethod = request.httpMethod
+                if (request.httpBody != null) {
+                    val os = urlConnection.getOutputStream()
+                    os.write(request.httpBody!!.data)
+                    os.close()
                 }
+                val bin = BufferedInputStream(urlConnection.inputStream)
+                val ba = bin.readBytes()
+                data = ZData(data = ba)
+//                    bin.read(data.data)
+                doDone(urlConnection, onMain, data, null, done)
+            } catch (ex: MalformedURLException) {
+                doDone(urlConnection, onMain, data, "MalformedURLException: " + ex.localizedMessage, done)
+            } catch (ex: IOException) {
+                doDone(urlConnection, onMain, data, "IOException: " + ex.localizedMessage, done)
+            } catch (ex: Exception) {
+                doDone(urlConnection, onMain, data, "Exception: " + ex.localizedMessage, done)
+            } finally {
+                urlConnection?.disconnect()
             }
             return ZURLSessionTask()
+        }
+
+        fun Send(request: ZUrlRequest, onMain: Boolean = true, async: Boolean = true, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, data: ZData?, error: ZError?) -> Unit) : ZURLSessionTask? {
+            if (async) {
+                ZGetBackgroundQue().async {
+                    send(request, onMain, makeStatusCodeError, done)
+                }
+            } else {
+                send(request, onMain, makeStatusCodeError, done)
+            }
+            return ZURLSessionTask()
+        }
+
+        fun SendSync(request: ZUrlRequest, timeoutSecs: Double = 11.0, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, data: ZData?, error: ZError?) -> Unit) {
+            Send(request, onMain = false, async = false, makeStatusCodeError =  makeStatusCodeError, done = done)
         }
 
         fun DownloadPersistantlyToFileInThread(request: ZUrlRequest, onCellular: Boolean? = null, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, file: ZFileUrl?, error: ZError?) -> Unit) : ZURLSessionTask? {
             ZNOTIMPLEMENTED()
             return ZURLSessionTask()
-        }
-
-        fun SendSync(request: ZUrlRequest, timeoutSecs: Double = 11.0, makeStatusCodeError: Boolean = false, done: (response: ZUrlResponse?, data: ZData?, error: ZError?) -> Unit) {
-            ZNOTIMPLEMENTED()
         }
 
         fun GetAllCookies() : List<String> {
