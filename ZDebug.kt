@@ -21,14 +21,16 @@ fun ZDebug.Companion.Print(vararg items: Any?, separator: String = " ", terminat
         str += "${item ?: "<nil>"}"
     }
     mutex.Lock()
-    if (storePrintLines != 0) {
-        if (storedLines.size > storePrintLines) {
-            storedLines.removeFirst()
+    if (!ZDebug.logAllOutput) {
+        if (storePrintLines != 0) {
+            if (storedLines.size > storePrintLines) {
+                storedLines.removeFirst()
+            }
+            storedLines.append(str)
         }
-        storedLines.append(str)
-    }
-    for (h in printHooks) {
-        h(str)
+        for (h in printHooks) {
+            h(str)
+        }
     }
     mutex.Unlock()
     basePrint(str, terminator = terminator)

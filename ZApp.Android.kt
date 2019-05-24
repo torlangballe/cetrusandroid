@@ -36,8 +36,8 @@ open class ZApp {
 
         val Version: Triple<String, Float, Int>
             get() {
-                val p = zMainActivityContext!!.getPackageManager()
-                val v = p.getPackageInfo(zMainActivityContext!!.getPackageName(), 0)
+                val p = zGetCurrentContext()!!.getPackageManager()
+                val v = p.getPackageInfo(zGetCurrentContext()!!.getPackageName(), 0)
                 val s = v.versionName
                 // version string, version with comma 1.2, build
                 return Triple(s, 0f, 0)
@@ -55,6 +55,10 @@ open class ZApp {
         }
 
         fun handleMessage(message: Message) {
+        }
+
+        fun GetProcessId() : Int {
+            return zGetCurrentContext()!!.getApplicationInfo().uid
         }
     }
 

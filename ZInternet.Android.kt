@@ -8,7 +8,6 @@ import java.net.InetAddress
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-
 class ZIPAddress {
     var ip4String = "127.0.0.1"
     var address: InetAddress? = null
@@ -47,7 +46,8 @@ class ZInternet {
 
         fun GetNetworkTrafficBytes(processUid: Int? = null): Long {
             if (processUid != null) {
-                return TrafficStats.getUidRxBytes(processUid!!)
+                val t = TrafficStats.getUidRxBytes(processUid!!)
+//                ZDebug.Print("Traffic:", t)
             }
             return TrafficStats.getTotalRxBytes()
         }
@@ -100,5 +100,3 @@ class ZInternet {
         }
     }
 }
-
-

@@ -44,10 +44,11 @@ class ZRepeater: ZTimerBase() {
         androidTimer = Timer()
         androidTimer!!.scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
-                if (zMainActivity == null) {
-                    print("Null!!!")
-                }
                 if (onMainThread) {
+                    if (zMainActivity == null) {
+                        print("MainActivity in timer is Null!!!")
+                        return
+                    }
                     zMainActivity?.runOnUiThread {
                         if (!done()) {
                             Stop()
@@ -55,6 +56,10 @@ class ZRepeater: ZTimerBase() {
                     }
                 } else {
                     if (!done()) {
+                        if (zMainActivity == null) {
+                            print("MainActivity in timer is Null2!!!")
+                            return
+                        }
                         zMainActivity!!.runOnUiThread {
                             Stop()
                         }

@@ -297,6 +297,15 @@ data class ZDevice (val _dummy: Int = 0) {
             return buffer.getLong()
         }
 
+        fun GetMainMAC() : Long {
+            if (ZIsTVBox()) {
+                return GetLanMAC()
+            } else {
+                return GetWifiMAC()
+            }
+        }
+
+
         fun GetLanMAC() : Long {
             try {
                 val allNetworkInterfaces = Collections.list(

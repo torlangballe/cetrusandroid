@@ -38,7 +38,7 @@ data class ZFolders (val _dummy: Int = 0) {
 }
 
 private fun copyAsset(name:String, toFile: ZFileUrl) : ZError? {
-    val assetManager = zMainActivity!!.getAssets()
+    val assetManager = zGetCurrentContext()!!.getAssets()
 
     val inStream = assetManager.open(name)
     val fout = File(toFile.FilePath)
@@ -66,6 +66,9 @@ private fun copyAsset(name:String, toFile: ZFileUrl) : ZError? {
 
 fun ZGetResourceFileUrl(subPath:String) : ZFileUrl {
     var furl = ZFolders.GetFileInFolderType(ZFolderType.temporary, "zres")
+    if (!furl.Exists()) {
+        furl.CreateFolder()
+    }
     val parts = ZStr.Split(subPath, "/")
     parts.forEachIndexed() { i, p ->
         furl = furl.AppendedPath(p)

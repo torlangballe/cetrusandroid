@@ -5,6 +5,7 @@
 //  Created by Tor Langballe on /23/9/14.
 //  Copyright (c) 2014 Capsule.fm. All rights reserved.
 //
+
 package com.github.torlangballe.cetrusandroid
 
 import java.io.File
@@ -89,6 +90,10 @@ data class ZStr(val dummy:Int = 0) {
                 return Pair(first, rest)
             }
             return Pair("", "")
+        }
+
+        fun SplitIntoLengths(str: String, length: Int) : List<String> {
+            return str.chunked(length)
         }
 
         fun CountLines(str: String) : Int =
@@ -372,27 +377,25 @@ data class ZStr(val dummy:Int = 0) {
 */
 
         fun NiceDouble(d: Double, maxSig: Int = 8, separator: String = ",") : String {
-            val str = ZStr.Format("%f", d)
-            var sfract = ZStr.TailUntil(str, sep = ".")
-            sfract = ZStr.Head(sfract, chars = maxSig)
-            var n = d.toLong()
-            var sint = ""
-            while (true) {
-                if (n / 1000 > 0) {
-                    sint = ZStr.Format("%03d", n % 1000) + sint
-                } else {
-                    sint = "${n % 1000}" + sint
+            val format = ZStr.Format("%%.%df", maxSig)
+            val s = ZStr.Format(format, d)
+            val parts = ZStr.Split(s, ".")
+            var n = parts[0]
+            var f = ""
+            if (parts.count() > 1) {
+                f = parts[1]
+
+                while (ZStr.Tail(f) == "0") {
+                    f = f.removedLast()
                 }
-                n /= 1000
-                if (n == 0.toLong()) {
-                    break
-                }
-                sint = separator + sint
             }
-            if (!sfract.isEmpty()) {
-                sfract = "." + sfract
+            if (separator != "") {
+                n = ZStr.Join(ZStr.SplitIntoLengths(n.reversed(), 3).asReversed(), separator)
             }
-            return sint + sfract
+            if (f != "") {
+                n += "." + f
+            }
+            return n
         }
 
         fun SplitLines(str: String, skipEmpty: Boolean = true) : List<String> {

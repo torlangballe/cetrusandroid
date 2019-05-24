@@ -17,7 +17,11 @@ class ZSVGImage {
         image = SVG.getFromString(data.GetString())
     }
     
-    fun Draw(canvas: ZCanvas) {
-        image!!.renderToCanvas(canvas.context)
+    fun Draw(canvas: ZCanvas, rect: ZRect = ZRect.Null) {
+        if (rect.IsNull) {
+            image!!.renderToCanvas(canvas.context)
+        } else {
+            image!!.renderToCanvas(canvas.context, ZRectToAndroidRectF(rect))
+        }
     }
 }

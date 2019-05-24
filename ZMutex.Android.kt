@@ -6,6 +6,7 @@
 
 package com.github.torlangballe.cetrusandroid
 
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.ReentrantLock
 
 class ZMutex {
@@ -20,4 +21,16 @@ class ZMutex {
     }
 }
 
+class ZCountDownLatch : CountDownLatch {
+    constructor(count:Int = 1) : super(count) { }
+
+    fun Wait() : ZError? {
+        await()
+        return null
+    }
+
+    fun Leave() {
+        countDown()
+    }
+}
 

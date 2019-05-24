@@ -98,7 +98,7 @@ class ZMovieView: VideoView, ZView {
 //        setMediaController(MediaController(zMainActivityContext!!)) // this seems to crash closing/rotating view?
 //        requestFocus()
 //        postInvalidateDelayed(100)
-        Play()
+//        Play()
     }
 
     fun GetCurrentTransferBitrateInBps() : Double { // this is a bit of a hack on android as it's just traffic of entire app

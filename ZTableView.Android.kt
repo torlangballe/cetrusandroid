@@ -19,7 +19,6 @@ interface ZTableViewDelegate {
     fun TableViewGetRowCount() : Int { return 0 }
     fun TableViewGetHeightOfItem(index: Int) : Double { return 10.0 }
     fun TableViewSetupCell(cellSize: ZSize, index: Int) : ZCustomView? { return null }
-//    fun UpdateRow(index: Int) { }
     fun HandleRowSelected(index: Int) { }
     fun GetAccessibilityForCell(index: Int, prefix: String) : List<ZAccessibilty> { return listOf<ZAccessibilty>() }
 }
@@ -102,9 +101,9 @@ class ZTableView : ZScrollView, ZTableViewDelegate { // , View.OnFocusChangeList
 
         v?.focusable = FOCUSABLE
         if (row < stack.cells.count()) {
+            zAddNativeView(v!!, toParent = stack, index = row)
             zRemoveNativeViewFromParent(stack.cells[row].view!!, detachFromContainer = false)
             stack.cells[row].view = v
-            zAddNativeView(v!!, toParent = stack, index = row)
         } else {
             stack.Add(v!!, ZAlignment.Left or ZAlignment.Top or ZAlignment.HorExpand or ZAlignment.NonProp)
             if (c > 1) {
@@ -118,7 +117,6 @@ class ZTableView : ZScrollView, ZTableViewDelegate { // , View.OnFocusChangeList
                 stack.ArrangeChildren()
             }
         }
-        v!!.Expose()
     }
 
     private fun getFirstVisibleRowIndex(fromTop: Boolean) : Int? {
@@ -168,7 +166,7 @@ class ZTableView : ZScrollView, ZTableViewDelegate { // , View.OnFocusChangeList
             if (i != 0) {
                 h += spacing
             }
-            UpdateRow(i)
+            UpdateRow(i, recalculate = false)
         }
         s.h = h
         s += margins * 2.0
