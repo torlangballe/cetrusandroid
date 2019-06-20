@@ -152,16 +152,6 @@ data class ZStr(val dummy:Int = 0) {
             return Pair(s, rest)
         }
 
-        fun PopTailWord(str: String, sep: String = " ", options: ZStringCompareOptions = ZStringCompareOptions.literal) : Pair<String, String> {
-            ZNOTIMPLEMENTED()
-            return Pair("", "")
-        }
-
-        fun PopHeadWord(str:  String, sep: String = " ", options: ZStringCompareOptions = ZStringCompareOptions.literal) : Pair<String, String> {
-            ZNOTIMPLEMENTED()
-            return Pair("", "")
-        }
-
         fun HasPrefix(str: String, prefix: String) : Boolean {
             if (str.startsWith(prefix)) {
                 return true

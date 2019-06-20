@@ -112,6 +112,14 @@ data class ZDevice (val _dummy: Int = 0) {
 
         val HardwareBrand: String = Build.BRAND
 
+        val OSPlatform: String
+            get() {
+                if (ZIsTVBox()) {
+                    return "androidtv"
+                }
+                return "android"
+            }
+
         private fun getAvailableInternalMemorySize(): Long {
             val path = getDataDirectory()
             val stat = StatFs(path.path)
